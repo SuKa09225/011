@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soul Island · 靈魂奇嶼記</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sun:#F4A261;--sea:#2A9D8F;--island:#264653;--sand:#E9C46A;--accent:#E76F51;
+  --coral:#FF8FA3;--mint:#A8E6CF;--sky:#89CFF0;--lav:#C8B6E2;--peach:#FFDAB9;
+  --cream:#FEFAE0;--ink:#1D1D1F;--ink2:#6E6E73;--line:#E8E8ED;
+  --ease:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth;scroll-padding-top:100px}
+body{
+  background:#FEFAE0;color:var(--ink);
+  font-family:'Nunito','Quicksand','Noto Sans TC',-apple-system,sans-serif;
+  font-weight:600;line-height:1.65;overflow-x:hidden;
+}
+h1,h2,h3,h4,h5,.big,.num,.mh,.l,.n{font-family:'Quicksand','Nunito','Noto Sans TC',sans-serif;font-weight:800;letter-spacing:-.01em}
+
+/* ============ 椰子跟隨光標 ============ */
+*,*::before,*::after{cursor:none !important}
+input,textarea,[contenteditable="true"]{cursor:text !important}
+@media(hover:none) and (pointer:coarse){*,*::before,*::after{cursor:auto !important}}
+#coconutCursor{
+  position:fixed;top:0;left:0;width:42px;height:42px;
+  pointer-events:none;z-index:99999;will-change:transform;
+  filter:drop-shadow(0 4px 8px rgba(38,70,83,.25));
+}
+#coconutCursor .coconut-svg{
+  width:100%;height:100%;display:block;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  transform-origin:center;
+}
+#coconutCursor.clicking .coconut-svg{transform:scale(1.35) rotate(-8deg)}
+#coconutCursor.hovering .coconut-svg{transform:scale(1.15)}
+@media(hover:none) and (pointer:coarse){#coconutCursor{display:none !important}}
+
+/* ============ 點擊動畫 ============ */
+.click-ripple{position:fixed;pointer-events:none;z-index:9998;width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle,rgba(42,157,143,.55) 0%,rgba(42,157,143,0) 70%);
+  transform:translate(-50%,-50%) scale(1);animation:rippleExpand .7s var(--ease) forwards}
+@keyframes rippleExpand{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(18);opacity:0}}
+.click-ring{position:fixed;pointer-events:none;z-index:9997;width:20px;height:20px;border-radius:50%;
+  border:2px solid rgba(42,157,143,.55);transform:translate(-50%,-50%) scale(1);
+  animation:ringExpand .8s var(--ease) forwards}
+@keyframes ringExpand{0%{transform:translate(-50%,-50%) scale(1);opacity:.8}100%{transform:translate(-50%,-50%) scale(4.5);opacity:0}}
+.click-piece{position:fixed;pointer-events:none;z-index:9996;font-size:1.3rem;
+  transform:translate(-50%,-50%) scale(1) rotate(0);animation:pieceBurst .8s var(--ease) forwards;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.2))}
+@keyframes pieceBurst{0%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(.4) rotate(var(--rot));opacity:0}}
+.click-spark{position:fixed;pointer-events:none;z-index:9995;width:5px;height:5px;border-radius:50%;
+  transform:translate(-50%,-50%) scale(1);animation:sparkFly .6s var(--ease) forwards}
+@keyframes sparkFly{0%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(0);opacity:0}}
+
+/* ============ 背景 ============ */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-base{position:absolute;inset:0;background:linear-gradient(180deg,#FEFAE0 0%,#F8F4E8 30%,#F0F7F4 60%,#FEFAE0 100%);transition:background 1.5s ease}
+.bg-grid{position:absolute;inset:-50%;width:200%;height:200%;
+  background-image:linear-gradient(rgba(42,157,143,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(42,157,143,.05) 1px,transparent 1px);
+  background-size:60px 60px;animation:gridMove 40s linear infinite;opacity:.6}
+@keyframes gridMove{0%{transform:translate(0,0)}100%{transform:translate(60px,60px)}}
+.bg-layer{position:absolute;inset:0;opacity:0;transition:opacity 1.6s var(--ease);
+  background-size:300% 300%;animation:gradientShift 26s ease infinite}
+.bg-layer.on{opacity:1}
+@keyframes gradientShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.bg-hero{background:linear-gradient(135deg,#FEFAE0 0%,#DFF5EF 30%,#E8F4F1 60%,#FFF0DC 100%)}
+.bg-problem{background:linear-gradient(135deg,#C8DCE8 0%,#A8C4D8 40%,#B8D0DE 70%,#D8E5EC 100%)}
+.bg-belief{background:linear-gradient(135deg,#FFE5D4 0%,#FFD1B8 30%,#FFDDD6 60%,#FFF0E0 100%)}
+.bg-journey{background:linear-gradient(135deg,#F5E8D0 0%,#E8D5B7 40%,#F0E2CB 70%,#FBF3E0 100%)}
+.bg-gallery{background:linear-gradient(135deg,#FFEFE8 0%,#FFE0D5 30%,#F8D7D0 60%,#FFF0E8 100%)}
+.bg-events{background:linear-gradient(135deg,#FFF6E0 0%,#FFE8B8 30%,#FFDCB0 60%,#FFF0D8 100%)}
+.bg-village{background:linear-gradient(135deg,#E0F2EF 0%,#B8E5DD 30%,#C4EBE0 60%,#E8F6F2 100%)}
+.bg-team{background:linear-gradient(135deg,#E8F5E0 0%,#C5E5B8 30%,#D4EBC8 60%,#EFF6EA 100%)}
+.bg-results{background:linear-gradient(135deg,#FFE0E8 0%,#FFC5D0 30%,#FFD4DE 60%,#FFF0F4 100%)}
+.bg-model{background:linear-gradient(135deg,#FFF5D8 0%,#FFE5A8 30%,#FFDBA5 60%,#FFF3D8 100%)}
+.bg-faq{background:linear-gradient(135deg,#F2E8F8 0%,#DBC8E8 30%,#E4D5F0 60%,#F5EDFA 100%)}
+.bg-chat{background:linear-gradient(135deg,#E0F5F2 0%,#B8E8E0 30%,#C8EDE5 60%,#E8F8F5 100%)}
+.bg-footer{background:linear-gradient(135deg,#D8E2EC 0%,#B8C8DC 30%,#C8D8E5 60%,#E0EBF2 100%)}
+.aurora{position:absolute;border-radius:50%;filter:blur(110px);opacity:.4;will-change:transform}
+.a1{width:600px;height:600px;background:radial-gradient(circle,#A8E6CF,transparent 70%);top:-200px;left:-200px;animation:aurora1 28s ease-in-out infinite}
+.a2{width:700px;height:700px;background:radial-gradient(circle,#FFDAB9,transparent 70%);top:30%;right:-300px;animation:aurora2 32s ease-in-out infinite}
+.a3{width:550px;height:550px;background:radial-gradient(circle,#89CFF0,transparent 70%);top:60%;left:-250px;animation:aurora3 30s ease-in-out infinite}
+.a4{width:650px;height:650px;background:radial-gradient(circle,#C8B6E2,transparent 70%);top:120%;right:-200px;animation:aurora4 34s ease-in-out infinite}
+@keyframes aurora1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(60px,40px) scale(1.1)}66%{transform:translate(-30px,80px) scale(.95)}}
+@keyframes aurora2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-80px,60px) scale(1.1)}66%{transform:translate(40px,-40px) scale(.9)}}
+@keyframes aurora3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(100px,-60px) scale(1.08)}}
+@keyframes aurora4{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-60px,-80px) scale(1.05)}66%{transform:translate(80px,50px) scale(.95)}}
+.stars{position:absolute;inset:0;pointer-events:none}
+.star{position:absolute;border-radius:50%;background:#264653;opacity:.1;animation:twinkle 4s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.06;transform:scale(1)}50%{opacity:.3;transform:scale(1.4)}}
+.bubbles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bubble{position:absolute;border-radius:50%;bottom:-100px;opacity:0;animation:bubbleUp linear infinite}
+@keyframes bubbleUp{0%{transform:translateY(0) scale(1);opacity:0}10%{opacity:.45}90%{opacity:.45}100%{transform:translateY(-115vh) scale(1.3);opacity:0}}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.25;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E")}
+#prog{position:fixed;top:0;left:0;height:3px;width:0;z-index:9999;
+  background:linear-gradient(90deg,var(--sea),var(--sun),var(--accent));transition:width .15s linear;
+  box-shadow:0 0 12px rgba(42,157,143,.4)}
+
+/* ============ 導航 ============ */
+.nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:900;
+  display:flex;gap:4px;padding:6px;border-radius:100px;
+  background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 2px 8px rgba(38,70,83,.06),0 8px 28px rgba(38,70,83,.1);
+  border:.5px solid rgba(255,255,255,.7);
+  transition:transform .5s var(--ease),opacity .3s;max-width:calc(100vw - 40px)}
+.nav.hide{transform:translateX(-50%) translateY(-120%);opacity:0}
+.nav a{padding:9px 15px;border-radius:100px;font-size:12.5px;font-weight:700;
+  color:var(--ink2);text-decoration:none;transition:all .35s var(--spring);
+  white-space:nowrap;font-family:'Quicksand','Noto Sans TC',sans-serif;
+  position:relative;overflow:hidden}
+.nav a::before{content:'';position:absolute;inset:0;background:var(--island);
+  border-radius:100px;transform:scale(0);transition:transform .45s var(--spring);z-index:-1}
+.nav a:hover{color:var(--ink);background:rgba(0,0,0,.04)}
+.nav a.on{color:#fff}
+.nav a.on::before{transform:scale(1)}
+@media(max-width:960px){.nav a{padding:7px 9px;font-size:11px}}
+@media(max-width:760px){.nav{display:none}}
+
+.wrap{position:relative;z-index:2;max-width:1140px;margin:0 auto;padding:0 24px}
+.sec{padding:110px 0;position:relative;overflow:hidden}
+
+.decor-layer{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.decor{position:absolute;font-size:2rem;opacity:.5;animation:floatDecor linear infinite;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.08));will-change:transform}
+.decor:nth-child(odd){animation-name:floatDecorA}
+.decor:nth-child(even){animation-name:floatDecorB}
+.decor:nth-child(3n){animation-name:floatDecorC}
+@keyframes floatDecorA{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(20px,-15px) rotate(8deg)}50%{transform:translate(-10px,-30px) rotate(-5deg)}75%{transform:translate(-25px,-10px) rotate(3deg)}}
+@keyframes floatDecorB{0%,100%{transform:translate(0,0) rotate(0) scale(1)}33%{transform:translate(-25px,20px) rotate(-10deg) scale(1.1)}66%{transform:translate(20px,30px) rotate(6deg) scale(.95)}}
+@keyframes floatDecorC{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(30px,-25px) rotate(15deg)}}
+.decor.small{font-size:1.4rem;opacity:.4}
+.decor.big{font-size:3rem;opacity:.4}
+
+.sec-badge{position:absolute;top:60px;right:5%;font-size:2.5rem;opacity:.4;
+  animation:floatDecorA 12s ease-in-out infinite;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.1));z-index:1}
+@media(max-width:640px){.sec-badge{font-size:1.8rem;top:40px}}
+
+/* ============ Hero ============ */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;padding:140px 0 80px;position:relative}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:100px;
+  background:rgba(255,255,255,.7);backdrop-filter:blur(12px);font-size:13px;font-weight:700;
+  color:var(--island);margin-bottom:28px;border:.5px solid rgba(255,255,255,.8);
+  box-shadow:0 4px 16px rgba(38,70,83,.04);animation:up .9s var(--ease) .1s both;
+  font-family:'Quicksand','Noto Sans TC',sans-serif}
+.hero h1{font-size:clamp(2.4rem,6.5vw,5rem);line-height:1.08;font-weight:800;
+  letter-spacing:-.02em;margin-bottom:24px;color:var(--island);animation:up 1s var(--ease) .25s both;position:relative;z-index:2}
+.hero h1 .accent{background:linear-gradient(135deg,var(--sea),var(--sun),var(--accent));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:clamp(1rem,2.2vw,1.3rem);color:var(--ink2);max-width:640px;
+  margin-bottom:12px;font-weight:600;animation:up .9s var(--ease) .45s both;position:relative;z-index:2}
+.en{font-size:.95rem;color:var(--sea);font-weight:700;font-style:italic;
+  margin-bottom:40px;animation:up .9s var(--ease) .6s both;position:relative;z-index:2}
+.cta{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:up .9s var(--ease) .75s both;position:relative;z-index:2}
+@keyframes up{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+.scroll-cue{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink2);
+  font-size:11px;font-weight:800;letter-spacing:.15em;opacity:.5;
+  animation:bob 2.4s ease-in-out infinite;font-family:'Quicksand',sans-serif;z-index:2}
+.scroll-cue .mouse{width:22px;height:34px;border:2px solid var(--ink2);border-radius:12px;position:relative}
+.scroll-cue .mouse::after{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);
+  width:3px;height:6px;background:var(--ink2);border-radius:2px;animation:wheel 1.6s infinite}
+@keyframes wheel{0%{transform:translate(-50%,0);opacity:1}100%{transform:translate(-50%,12px);opacity:0}}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+
+.btn{display:inline-flex;align-items:center;gap:9px;padding:15px 30px;border-radius:100px;
+  font-size:15px;font-weight:800;border:none;transition:all .4s var(--spring);
+  text-decoration:none;font-family:'Quicksand','Noto Sans TC',sans-serif;
+  position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transition:left .7s ease}
+.btn:hover::before{left:100%}
+.btn-dark{background:var(--island);color:#fff;box-shadow:0 4px 12px rgba(38,70,83,.15)}
+.btn-dark:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 12px 32px rgba(38,70,83,.25)}
+.btn-ghost{background:rgba(255,255,255,.6);color:var(--ink);backdrop-filter:blur(12px);
+  border:.5px solid rgba(255,255,255,.8);box-shadow:0 2px 8px rgba(38,70,83,.05)}
+.btn-ghost:hover{transform:translateY(-3px) scale(1.02);background:rgba(255,255,255,.9);box-shadow:0 12px 32px rgba(38,70,83,.1)}
+
+.eyebrow{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--sea);margin-bottom:14px;display:flex;align-items:center;gap:10px;
+  font-family:'Quicksand','Noto Sans TC',sans-serif}
+.eyebrow::before{content:'';width:24px;height:2px;background:var(--sea);border-radius:2px;
+  animation:lineGrow .8s var(--ease);box-shadow:0 0 8px rgba(42,157,143,.5)}
+@keyframes lineGrow{from{width:0}}
+h2.big{font-size:clamp(1.9rem,4.5vw,3rem);font-weight:800;letter-spacing:-.02em;
+  line-height:1.15;color:var(--island);margin-bottom:16px}
+.sub{font-size:1.05rem;color:var(--ink2);max-width:640px;margin-bottom:44px;font-weight:600}
+
+/* ============ 卡片：完全融入背景 ============ */
+.card,.belief,.model,.result,.quote,.faq-item,.tl-content,.event,.member,.chip,.pt{
+  background:transparent;border:none;box-shadow:none;
+  transition:all .5s var(--ease);cursor:pointer;position:relative;overflow:hidden;
+}
+.belief:nth-child(1),.model:nth-child(1),.result:nth-child(1){border-radius:24px 32px 20px 28px / 32px 20px 28px 24px}
+.belief:nth-child(2),.model:nth-child(2),.result:nth-child(2){border-radius:20px 28px 24px 32px / 28px 24px 32px 20px}
+.belief:nth-child(3),.model:nth-child(3),.result:nth-child(3){border-radius:32px 20px 28px 24px / 20px 28px 24px 32px}
+.model:nth-child(4),.result:nth-child(4){border-radius:24px 32px 20px 28px / 28px 20px 32px 24px}
+.model:nth-child(5),.result:nth-child(5){border-radius:28px 24px 32px 20px / 24px 32px 20px 28px}
+.model:nth-child(6),.result:nth-child(6){border-radius:20px 32px 24px 28px / 32px 24px 28px 20px}
+.card:hover,.belief:hover,.model:hover,.result:hover,.quote:hover,.faq-item:hover,
+.tl-content:hover,.event:hover,.member:hover,.chip:hover,.pt:hover{
+  background:rgba(255,255,255,.28);
+  backdrop-filter:blur(8px) saturate(140%);
+  -webkit-backdrop-filter:blur(8px) saturate(140%);
+  transform:translateY(-4px);
+  box-shadow:0 8px 24px rgba(38,70,83,.05);
+}
+
+/* ============ 統計卡 ============ */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
+.stat{padding:34px 26px;color:#fff;position:relative;overflow:hidden;
+  transition:all .5s var(--ease);min-height:200px;display:flex;flex-direction:column;
+  justify-content:flex-end;cursor:pointer;box-shadow:0 4px 16px rgba(38,70,83,.06)}
+.stat:nth-child(1){border-radius:28px 32px 24px 36px / 32px 24px 36px 28px;background:linear-gradient(150deg,#F4A261,#E76F51)}
+.stat:nth-child(2){border-radius:24px 36px 28px 32px / 36px 28px 32px 24px;background:linear-gradient(150deg,#E76F51,#264653)}
+.stat:nth-child(3){border-radius:36px 28px 32px 24px / 28px 32px 24px 36px;background:linear-gradient(150deg,#2A9D8F,#264653)}
+.stat:nth-child(4){border-radius:32px 24px 36px 28px / 24px 36px 28px 32px;background:linear-gradient(150deg,#C8B6E2,#E76F51)}
+.stat::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;
+  border-radius:50%;background:rgba(255,255,255,.1);transition:transform .6s var(--ease)}
+.stat:hover::before{transform:scale(1.3)}
+.stat::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.25),transparent 40%);
+  opacity:0;transition:opacity .5s;pointer-events:none;border-radius:inherit}
+.stat:hover::after{opacity:1}
+.stat:hover{transform:translateY(-8px) rotate(-.6deg);box-shadow:0 12px 36px rgba(38,70,83,.18)}
+.stat .num{font-size:2.8rem;font-weight:900;line-height:1;letter-spacing:-.02em;position:relative;z-index:2;text-shadow:0 2px 8px rgba(0,0,0,.12)}
+.stat .lbl{font-size:.88rem;font-weight:600;opacity:.96;margin-top:8px;position:relative;z-index:2}
+
+/* ============ 信念 ============ */
+.belief-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
+.belief{padding:36px 30px 32px;position:relative;z-index:1}
+.belief .b-icon{width:56px;height:56px;border-radius:20px 26px 18px 24px / 26px 18px 24px 20px;
+  background:linear-gradient(135deg,var(--c), color-mix(in srgb,var(--c) 60%, #264653));
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#fff;
+  margin-bottom:20px;position:relative;z-index:1;box-shadow:0 4px 12px rgba(0,0,0,.1);
+  transition:transform .5s var(--spring)}
+.belief:hover .b-icon{transform:scale(1.08) rotate(-8deg)}
+.belief h3{font-size:1.15rem;color:var(--island);margin-bottom:10px;font-weight:800;position:relative;z-index:1}
+.belief p{font-size:.92rem;color:var(--ink2);line-height:1.7;font-weight:600;position:relative;z-index:1}
+
+/* ============ 時間線 ============ */
+.timeline{position:relative;padding:40px 0}
+.timeline::before{content:'';position:absolute;left:24px;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--mint),var(--sky),var(--lav),var(--peach));border-radius:3px;opacity:.5}
+.tl-item{position:relative;padding-left:70px;margin-bottom:44px;opacity:0;transform:translateX(-30px);transition:all .9s var(--ease)}
+.tl-item.in{opacity:1;transform:translateX(0)}
+.tl-item::before{content:attr(data-year);position:absolute;left:0;top:0;
+  width:52px;height:52px;background:rgba(255,255,255,.7);
+  border:2.5px solid var(--sea);border-radius:60% 40% 55% 45% / 45% 55% 40% 60%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;
+  color:var(--sea);font-family:'Quicksand',sans-serif;z-index:1;backdrop-filter:blur(8px);
+  box-shadow:0 4px 12px rgba(38,70,83,.06);
+  transition:transform .5s var(--spring)}
+.tl-item:hover::before{transform:scale(1.15) rotate(-8deg)}
+.tl-content{padding:26px 30px;position:relative;overflow:hidden}
+.tl-content::before{content:'';position:absolute;top:16px;left:0;bottom:16px;width:3px;
+  background:linear-gradient(180deg,var(--sea),var(--sun));opacity:.5;border-radius:0 3px 3px 0}
+.tl-content h4{font-size:1.05rem;color:var(--island);margin-bottom:8px;font-weight:800}
+.tl-content p{font-size:.88rem;color:var(--ink2);line-height:1.7;font-weight:600}
+
+/* ============ 相片 ============ */
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.photo{overflow:hidden;position:relative;aspect-ratio:4/3;
+  transition:all .6s var(--ease);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(38,70,83,.08)}
+.photo:nth-child(1){border-radius:24px 32px 20px 28px / 32px 20px 28px 24px}
+.photo:nth-child(2){border-radius:20px 28px 24px 32px / 28px 24px 32px 20px}
+.photo:nth-child(3){border-radius:32px 20px 28px 24px / 20px 28px 24px 32px}
+.photo:nth-child(4){border-radius:24px 32px 20px 28px / 28px 20px 32px 24px}
+.photo:nth-child(5){border-radius:28px 24px 32px 20px / 24px 32px 20px 28px}
+.photo:nth-child(6){border-radius:20px 32px 24px 28px / 32px 24px 28px 20px}
+.photo:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 16px 40px rgba(38,70,83,.14)}
+.photo .emoji{font-size:5rem;filter:drop-shadow(0 8px 16px rgba(0,0,0,.2));transition:transform .6s var(--spring);position:relative;z-index:1}
+.photo:hover .emoji{transform:scale(1.15) rotate(-8deg)}
+.photo .cap{position:absolute;left:0;right:0;bottom:0;padding:22px 20px;
+  background:linear-gradient(to top,rgba(0,0,0,.75),transparent);color:#fff;
+  font-weight:800;font-size:1rem;font-family:'Quicksand','Noto Sans TC',sans-serif;
+  transition:transform .5s var(--ease);z-index:2}
+.photo:hover .cap{transform:translateY(-4px)}
+.photo .pin{position:absolute;top:14px;left:14px;padding:6px 14px;border-radius:100px;
+  background:rgba(255,255,255,.9);color:var(--island);font-size:11px;font-weight:800;
+  transition:transform .4s var(--spring);z-index:2;backdrop-filter:blur(8px)}
+.photo:hover .pin{transform:translateY(-3px) scale(1.05)}
+.photo .more{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--island);opacity:0;transform:scale(.7) rotate(-90deg);
+  transition:.4s var(--spring);z-index:2;backdrop-filter:blur(8px)}
+.photo:hover .more{opacity:1;transform:scale(1) rotate(0)}
+
+/* ============ 活動 ============ */
+.events{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.event{overflow:hidden;position:relative;transition:all .5s var(--ease);cursor:pointer}
+.event:nth-child(1){border-radius:32px 24px 28px 36px / 24px 32px 36px 28px}
+.event:nth-child(2){border-radius:24px 36px 32px 28px / 36px 32px 28px 24px}
+.event:nth-child(3){border-radius:36px 28px 24px 32px / 28px 24px 32px 36px}
+.event:hover{transform:translateY(-8px)}
+.event::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(500px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.4),transparent 40%);
+  opacity:0;transition:opacity .5s;z-index:2;pointer-events:none;border-radius:inherit}
+.event:hover::after{opacity:1}
+.event .thumb{height:200px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  box-shadow:0 4px 16px rgba(38,70,83,.08);transition:box-shadow .5s var(--ease)}
+.event:hover .thumb{box-shadow:0 12px 32px rgba(38,70,83,.15)}
+.event:nth-child(1) .thumb{border-radius:32px 24px 0 0 / 24px 32px 0 0}
+.event:nth-child(2) .thumb{border-radius:24px 36px 0 0 / 36px 32px 0 0}
+.event:nth-child(3) .thumb{border-radius:36px 28px 0 0 / 28px 24px 0 0}
+.event .thumb .em{font-size:4rem;filter:drop-shadow(0 6px 12px rgba(0,0,0,.2));transition:transform .6s var(--spring);position:relative;z-index:1}
+.event:hover .thumb .em{transform:scale(1.15) rotate(-6deg)}
+.event .thumb .tag{position:absolute;bottom:16px;left:18px;padding:6px 14px;border-radius:100px;
+  background:rgba(255,255,255,.9);color:var(--island);font-size:12px;font-weight:800;z-index:1;backdrop-filter:blur(8px)}
+.event .body{padding:22px 12px 6px;position:relative;z-index:1}
+.event h3{font-size:1.2rem;font-weight:800;letter-spacing:-.01em;margin-bottom:8px;color:var(--island)}
+.event p{font-size:.9rem;color:var(--ink2);margin-bottom:16px;font-weight:600}
+.event .meta{display:flex;gap:16px;font-size:12.5px;font-weight:800;color:var(--sea);margin-bottom:18px}
+.event .foot{display:flex;justify-content:space-between;align-items:center}
+.event .price{font-size:1.35rem;font-weight:900;color:var(--island)}
+.event .price small{font-size:.78rem;font-weight:600;color:var(--ink2)}
+.pill{padding:10px 22px;border-radius:100px;
+  background:linear-gradient(135deg,var(--accent),#d15a3f);color:#fff;
+  font-size:13px;font-weight:800;border:none;transition:.35s var(--spring);
+  font-family:'Quicksand','Noto Sans TC',sans-serif;position:relative;overflow:hidden;
+  box-shadow:0 2px 6px rgba(231,111,81,.18)}
+.pill:hover{transform:scale(1.08) translateY(-2px);box-shadow:0 6px 20px rgba(231,111,81,.3)}
+
+/* ============ Chips ============ */
+.chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.chip{padding:13px 24px;font-size:14px;font-weight:800;color:var(--island);
+  transition:.4s var(--spring);display:flex;align-items:center;gap:9px;
+  font-family:'Quicksand','Noto Sans TC',sans-serif}
+.chip:nth-child(odd){border-radius:60px 20px 60px 20px / 20px 60px 20px 60px}
+.chip:nth-child(even){border-radius:20px 60px 20px 60px / 60px 20px 60px 20px}
+
+/* ============ 團隊 ============ */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.member{overflow:hidden;transition:all .5s var(--ease);position:relative;padding:24px 12px 12px}
+.member:nth-child(1){border-radius:32px 24px 28px 36px / 24px 32px 36px 28px}
+.member:nth-child(2){border-radius:24px 36px 32px 28px / 36px 32px 28px 24px}
+.member:nth-child(3){border-radius:36px 28px 24px 32px / 28px 24px 32px 36px}
+.member:nth-child(4){border-radius:28px 32px 24px 36px / 32px 24px 36px 28px}
+.member:hover{transform:translateY(-8px)}
+.member .m-top{padding:16px 16px 12px;position:relative;overflow:hidden}
+.member .m-top::before{content:'';position:absolute;top:-80px;right:-80px;width:200px;height:200px;
+  border-radius:50%;opacity:.08;transition:transform .8s var(--ease);filter:blur(20px)}
+.member:hover .m-top::before{transform:scale(1.4)}
+.member.wanki .m-top::before{background:var(--sea)}
+.member.sunny .m-top::before{background:var(--sky)}
+.member.gloria .m-top::before{background:var(--sun)}
+.member.stephy .m-top::before{background:var(--lav)}
+.member .ava{width:100px;height:100px;margin-bottom:18px;
+  display:flex;align-items:center;justify-content:center;font-size:2.6rem;
+  border:3px solid rgba(255,255,255,.9);position:relative;z-index:1;
+  transition:all .5s var(--spring);
+  border-radius:60% 40% 55% 45% / 45% 55% 40% 60%}
+.member:hover .ava{transform:scale(1.1) rotate(8deg);border-radius:45% 55% 40% 60% / 60% 45% 55% 40%}
+.member.wanki .ava{background:linear-gradient(135deg,#A8E6CF,#2A9D8F);box-shadow:0 8px 24px rgba(42,157,143,.25)}
+.member.sunny .ava{background:linear-gradient(135deg,#89CFF0,#264653);box-shadow:0 8px 24px rgba(38,70,83,.25)}
+.member.gloria .ava{background:linear-gradient(135deg,#FFDAB9,#E76F51);box-shadow:0 8px 24px rgba(231,111,81,.25)}
+.member.stephy .ava{background:linear-gradient(135deg,#C8B6E2,#E76F51);box-shadow:0 8px 24px rgba(200,182,226,.3)}
+.member .name{font-size:1.25rem;font-weight:900;color:var(--island);position:relative;z-index:1;font-family:'Quicksand','Noto Sans TC',sans-serif}
+.member .role-tag{display:inline-block;font-size:11px;font-weight:800;color:#fff;
+  padding:5px 12px;border-radius:100px;margin-top:8px;letter-spacing:.06em;
+  text-transform:uppercase;position:relative;z-index:1}
+.member.wanki .role-tag{background:linear-gradient(135deg,var(--sea),#1e7a6e)}
+.member.sunny .role-tag{background:linear-gradient(135deg,var(--island),#1a2e38)}
+.member.gloria .role-tag{background:linear-gradient(135deg,var(--accent),#c9502f)}
+.member.stephy .role-tag{background:linear-gradient(135deg,var(--lav),#9b7bc2)}
+.member .degree{font-size:.85rem;color:var(--ink2);margin-top:12px;font-weight:600;position:relative;z-index:1;line-height:1.55}
+.member .m-body{padding:0 16px 20px;position:relative;z-index:1}
+.member .highlight-item{display:flex;gap:10px;font-size:.85rem;color:var(--ink);font-weight:600;margin-bottom:10px;line-height:1.55;align-items:flex-start}
+.member .highlight-item i{color:var(--sea);font-size:.9rem;margin-top:3px;flex-shrink:0}
+.member .expand-btn{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 20px;background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.5);
+  border-radius:60px 20px 60px 20px / 20px 60px 20px 60px;
+  font-size:13px;font-weight:800;color:var(--island);margin-top:6px;transition:.4s var(--spring);
+  font-family:'Quicksand','Noto Sans TC',sans-serif}
+.member .expand-btn:hover{background:rgba(168,230,207,.5);transform:scale(1.02)}
+.member .expand-btn i{transition:transform .5s var(--ease)}
+.member .expand-btn.open i{transform:rotate(180deg)}
+.member .m-full{max-height:0;overflow:hidden;transition:max-height .7s var(--ease),padding .7s var(--ease),opacity .4s ease;opacity:0}
+.member .m-full.open{max-height:900px;opacity:1;padding-top:16px}
+.member .m-full h5{font-size:12px;font-weight:800;color:var(--sea);letter-spacing:.1em;text-transform:uppercase;margin:14px 0 8px;font-family:'Quicksand','Noto Sans TC',sans-serif}
+.member .m-full h5:first-child{margin-top:0}
+.member .m-full ul{list-style:none}
+.member .m-full li{font-size:.83rem;color:var(--ink2);font-weight:600;padding:5px 0 5px 18px;position:relative;line-height:1.6}
+.member .m-full li::before{content:'•';position:absolute;left:0;color:var(--sea);font-weight:900;font-size:1.1rem;line-height:1}
+.member .social-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.member .s-tag{font-size:11px;font-weight:800;padding:5px 11px;border-radius:100px;
+  background:rgba(255,255,255,.55);color:var(--ink2);font-family:'Quicksand','Noto Sans TC',sans-serif}
+.member .s-tag.sea{background:rgba(42,157,143,.15);color:var(--sea)}
+.member .s-tag.sun{background:rgba(244,162,97,.2);color:#C77E3F}
+.member .s-tag.lav{background:rgba(200,182,226,.3);color:#7A5DA8}
+
+/* ============ 成果 ============ */
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:32px}
+.result{padding:30px 22px 26px;text-align:center;position:relative;overflow:hidden}
+.result .r-num{font-size:2.2rem;font-weight:900;line-height:1;
+  background:linear-gradient(135deg,var(--sea),var(--sun));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.result .r-lbl{font-size:.82rem;color:var(--ink2);font-weight:700;margin-top:10px;line-height:1.45}
+
+/* ============ 商業 ============ */
+.models{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.model{padding:28px 26px 26px;position:relative;overflow:hidden}
+.model .ico{font-size:1.8rem;margin-bottom:14px;display:block;transition:transform .5s var(--spring)}
+.model:hover .ico{transform:scale(1.2) rotate(-10deg)}
+.model h4{font-size:1rem;font-weight:800;color:var(--island);margin-bottom:8px}
+.model p{font-size:.86rem;color:var(--ink2);font-weight:600}
+.model .read{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--sea);margin-top:12px;transition:gap .3s}
+.model:hover .read{gap:10px}
+
+/* ============ 市場 ============ */
+.markets{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.mkt{padding:36px 28px;color:#fff;text-align:center;transition:all .5s var(--ease);cursor:pointer;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(38,70,83,.1)}
+.mkt.tam{background:linear-gradient(150deg,#F4A261,#E76F51);border-radius:50% 40% 55% 45% / 45% 50% 45% 55%}
+.mkt.sam{background:linear-gradient(150deg,#2A9D8F,#264653);border-radius:40% 55% 45% 50% / 55% 45% 50% 40%}
+.mkt.som{background:linear-gradient(150deg,#C8B6E2,#E76F51);border-radius:55% 45% 50% 40% / 45% 55% 40% 50%}
+.mkt::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.3),transparent 40%);
+  opacity:0;transition:opacity .5s;border-radius:inherit}
+.mkt:hover::after{opacity:1}
+.mkt:hover{transform:translateY(-8px) scale(1.03);box-shadow:0 16px 40px rgba(38,70,83,.2)}
+.mkt .l{font-size:1.9rem;font-weight:900;letter-spacing:.06em;position:relative;z-index:1;text-shadow:0 2px 8px rgba(0,0,0,.12)}
+.mkt .n{font-size:2.1rem;font-weight:900;margin:8px 0 6px;position:relative;z-index:1;text-shadow:0 2px 8px rgba(0,0,0,.12)}
+.mkt .d{font-size:.82rem;opacity:.96;font-weight:600;line-height:1.6;position:relative;z-index:1}
+
+/* ============ 引言 ============ */
+.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.quote{padding:28px 26px 24px 42px;position:relative;overflow:hidden}
+.quote:nth-child(1){border-radius:24px 28px 20px 32px / 28px 20px 32px 24px}
+.quote:nth-child(2){border-radius:28px 20px 32px 24px / 20px 32px 24px 28px}
+.quote:nth-child(3){border-radius:32px 24px 28px 20px / 24px 28px 20px 32px}
+.quote:nth-child(4){border-radius:20px 32px 24px 28px / 32px 24px 28px 20px}
+.quote::before{content:'"';position:absolute;top:18px;left:12px;font-size:4rem;color:var(--sun);opacity:.4;font-family:Georgia,serif;line-height:1;transition:transform .5s var(--ease),opacity .4s}
+.quote:hover::before{opacity:.7;transform:scale(1.1) rotate(-6deg)}
+.quote .t{font-size:.93rem;color:var(--ink);font-weight:600;line-height:1.7;font-style:italic;position:relative;z-index:1}
+.quote .a{font-size:12px;font-weight:800;color:var(--sea);margin-top:14px;text-align:right;position:relative;z-index:1}
+
+/* ============ 夥伴 ============ */
+.partners{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.pt{padding:12px 22px;font-size:13px;font-weight:800;color:var(--island);
+  transition:.4s var(--spring);font-family:'Quicksand','Noto Sans TC',sans-serif}
+.pt:nth-child(odd){border-radius:60px 20px 60px 20px / 20px 60px 20px 60px}
+.pt:nth-child(even){border-radius:20px 60px 20px 60px / 60px 20px 60px 20px}
+
+/* ============ FAQ ============ */
+.faq-list{display:flex;flex-direction:column;gap:14px}
+.faq-item{position:relative;overflow:hidden}
+.faq-item:nth-child(odd){border-radius:22px 18px 24px 20px / 18px 24px 20px 22px}
+.faq-item:nth-child(even){border-radius:18px 24px 20px 22px / 24px 20px 22px 18px}
+.faq-item::before{content:'';position:absolute;top:14px;left:0;bottom:14px;width:3px;
+  background:linear-gradient(180deg,var(--sea),var(--sun));opacity:.5;border-radius:0 3px 3px 0}
+.faq-q{padding:20px 26px 20px 28px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:800;color:var(--island);font-size:1rem;font-family:'Quicksand','Noto Sans TC',sans-serif;transition:.3s}
+.faq-q:hover{background:rgba(168,230,207,.1)}
+.faq-q i{color:var(--sea);transition:transform .5s var(--ease);font-size:.9rem}
+.faq-item.open .faq-q i{transform:rotate(180deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .5s var(--ease),padding .5s var(--ease);padding:0 26px 0 28px}
+.faq-item.open .faq-a{max-height:400px;padding:0 26px 22px 28px}
+.faq-a p{font-size:.9rem;color:var(--ink2);line-height:1.75;font-weight:600}
+
+/* ============ Newsletter ============ */
+.newsletter{padding:60px 52px;color:#fff;text-align:center;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(38,70,83,.85),rgba(42,157,143,.85));
+  backdrop-filter:blur(20px);
+  border-radius:44px 30px 40px 34px / 30px 44px 34px 40px;
+  box-shadow:0 16px 40px rgba(38,70,83,.2)}
+.newsletter::before{content:'✉️';position:absolute;font-size:200px;opacity:.06;top:-40px;right:-30px;transform:rotate(-15deg)}
+.newsletter::after{content:'🥥';position:absolute;font-size:160px;opacity:.06;bottom:-40px;left:-20px;transform:rotate(15deg)}
+.newsletter h3{font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:900;margin-bottom:14px;position:relative;z-index:1;color:#fff}
+.newsletter p{font-size:1rem;opacity:.92;max-width:520px;margin:0 auto 28px;position:relative;z-index:1;font-weight:600}
+.nl-form{display:flex;gap:10px;max-width:480px;margin:0 auto;position:relative;z-index:1;flex-wrap:wrap}
+.nl-form input{flex:1;min-width:200px;padding:15px 22px;border-radius:100px;border:none;font-size:.92rem;font-family:inherit;font-weight:600;background:rgba(255,255,255,.95);color:var(--ink)}
+.nl-form input:focus{outline:none;box-shadow:0 0 0 4px rgba(255,255,255,.3)}
+.nl-form button{padding:15px 28px;border-radius:100px;background:linear-gradient(135deg,var(--sun),#e0924a);color:var(--island);border:none;font-weight:800;font-size:.92rem;font-family:'Quicksand','Noto Sans TC',sans-serif;transition:all .4s var(--spring);white-space:nowrap}
+.nl-form button:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 12px 32px rgba(233,196,106,.4)}
+
+/* ============ AI 聊天 ============ */
+.chat{max-width:820px;margin:0 auto;overflow:hidden;
+  background:rgba(255,255,255,.5);
+  backdrop-filter:blur(16px) saturate(140%);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  border-radius:36px 28px 36px 30px / 28px 36px 30px 36px;
+  box-shadow:0 8px 32px rgba(38,70,83,.06)}
+.chat-head{padding:20px 26px;border-bottom:1px solid rgba(255,255,255,.3);display:flex;align-items:center;gap:11px;font-weight:800;color:var(--island);font-family:'Quicksand','Noto Sans TC',sans-serif;background:linear-gradient(90deg,rgba(42,157,143,.03),rgba(244,162,97,.03));position:relative}
+.chat-head::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--sea),var(--sun))}
+.chat-head .dot{width:9px;height:9px;border-radius:50%;background:#34C759;box-shadow:0 0 0 4px rgba(52,199,89,.2),0 0 12px rgba(52,199,89,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(52,199,89,.2),0 0 12px rgba(52,199,89,.5)}50%{box-shadow:0 0 0 8px rgba(52,199,89,.08),0 0 20px rgba(52,199,89,.4)}}
+.chat-head .who-name{flex:1}
+.chat-head .ai-badge{font-size:11px;font-weight:800;background:linear-gradient(135deg,var(--sea),var(--sun));color:#fff;padding:4px 10px;border-radius:100px;letter-spacing:.05em}
+.chat-body{padding:22px 26px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.2)}
+.chat-body::-webkit-scrollbar{width:5px}
+.chat-body::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+.msg{max-width:82%;padding:14px 20px;font-size:.92rem;animation:msgIn .5s var(--spring);line-height:1.7;font-weight:600;border-radius:22px}
+@keyframes msgIn{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:none}}
+.msg.them{background:rgba(255,255,255,.75);align-self:flex-start;border-bottom-left-radius:6px;box-shadow:0 2px 8px rgba(38,70,83,.04)}
+.msg.me{background:linear-gradient(135deg,var(--island),#1a2e38);color:#fff;align-self:flex-end;border-bottom-right-radius:6px;box-shadow:0 4px 12px rgba(38,70,83,.15)}
+.msg .who{font-size:11px;font-weight:800;color:var(--sea);margin-bottom:6px}
+.msg.me .who{color:rgba(255,255,255,.75)}
+.msg.them strong{color:var(--island)}
+.typing{display:flex;gap:5px;align-self:flex-start;padding:14px 18px;background:rgba(255,255,255,.75);border-radius:20px 20px 20px 6px;box-shadow:0 2px 8px rgba(38,70,83,.04)}
+.typing span{width:7px;height:7px;border-radius:50%;background:#c7c7cc;animation:type 1.4s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes type{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-7px);opacity:1}}
+.chat-suggest{padding:0 22px 14px;display:flex;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,.2)}
+.sg{padding:9px 16px;border-radius:100px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.5);font-size:12px;font-weight:700;color:var(--island);transition:.4s var(--spring);font-family:'Quicksand','Noto Sans TC',sans-serif}
+.sg:hover{transform:translateY(-3px) rotate(-1deg) scale(1.05);background:rgba(168,230,207,.6);border-color:rgba(168,230,207,.7)}
+.chat-foot{padding:16px 22px;display:flex;gap:11px;border-top:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.4)}
+.chat-foot input{flex:1;padding:14px 20px;border-radius:100px;border:1px solid rgba(255,255,255,.5);font-size:.92rem;background:rgba(255,255,255,.6);transition:.3s;font-family:inherit;font-weight:600}
+.chat-foot input:focus{outline:none;background:#fff;border-color:var(--sea);box-shadow:0 0 0 4px rgba(42,157,143,.1)}
+.chat-foot button{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--island),#1a2e38);color:#fff;border:none;font-size:15px;transition:.4s var(--spring);box-shadow:0 4px 12px rgba(38,70,83,.15)}
+.chat-foot button:hover{transform:scale(1.1) rotate(12deg);background:linear-gradient(135deg,var(--sea),#1e7a6e);box-shadow:0 6px 16px rgba(42,157,143,.25)}
+
+/* ============ 加入卡片 ============ */
+.join-card{margin-top:56px;padding:60px 52px;color:#fff;text-align:center;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(38,70,83,.85),rgba(42,157,143,.85));
+  backdrop-filter:blur(20px);
+  border-radius:48px 30px 44px 34px / 30px 48px 34px 44px;
+  box-shadow:0 16px 40px rgba(38,70,83,.2)}
+.join-card::before{content:'🌊';position:absolute;font-size:180px;opacity:.08;top:-40px;right:-20px;transform:rotate(-15deg);animation:floatSlow 8s ease-in-out infinite}
+.join-card::after{content:'🌱';position:absolute;font-size:150px;opacity:.08;bottom:-30px;left:-10px;transform:rotate(15deg);animation:floatSlow 10s ease-in-out infinite reverse}
+@keyframes floatSlow{0%,100%{transform:translateY(0) rotate(-15deg)}50%{transform:translateY(-20px) rotate(-10deg)}}
+.join-card h3{font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:900;margin-bottom:14px;position:relative;z-index:1;color:#fff}
+.join-card p{font-size:1rem;opacity:.92;max-width:560px;margin:0 auto 28px;position:relative;z-index:1;font-weight:600}
+.join-card .btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.join-card .btn-white{background:#fff;color:var(--island);padding:14px 28px;border-radius:100px;font-weight:800;font-size:14px;text-decoration:none;transition:all .4s var(--spring);display:inline-flex;align-items:center;gap:8px;font-family:'Quicksand','Noto Sans TC',sans-serif;box-shadow:0 8px 20px rgba(0,0,0,.15)}
+.join-card .btn-white:hover{transform:translateY(-4px) rotate(-1deg) scale(1.05);box-shadow:0 16px 36px rgba(0,0,0,.25)}
+.join-card .btn-ghost-w{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.4);padding:14px 28px;border-radius:100px;font-weight:800;font-size:14px;text-decoration:none;transition:all .4s var(--spring);display:inline-flex;align-items:center;gap:8px;font-family:'Quicksand','Noto Sans TC',sans-serif;backdrop-filter:blur(8px)}
+.join-card .btn-ghost-w:hover{transform:translateY(-4px) rotate(1deg);background:rgba(255,255,255,.25)}
+
+/* ============ Footer ============ */
+footer{padding:80px 0 50px;text-align:center;position:relative;z-index:2}
+footer .brand{font-size:1.6rem;font-weight:900;color:var(--island);letter-spacing:-.02em;margin-bottom:10px;font-family:'Quicksand','Noto Sans TC',sans-serif}
+footer .claim{font-size:1rem;font-weight:800;color:var(--sea);font-style:italic;margin-bottom:24px}
+footer .links{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+footer .links a{font-size:13px;font-weight:700;color:var(--ink2);text-decoration:none;transition:.3s;position:relative}
+footer .links a::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:2px;background:var(--sea);border-radius:2px;transition:width .35s var(--ease)}
+footer .links a:hover{color:var(--island)}
+footer .links a:hover::after{width:100%}
+footer .social-row{display:flex;gap:12px;justify-content:center;margin-bottom:22px}
+footer .social-row a{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.5);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;color:var(--island);font-size:16px;text-decoration:none;transition:all .4s var(--spring);box-shadow:0 2px 8px rgba(38,70,83,.04)}
+footer .social-row a:hover{transform:translateY(-4px) rotate(-8deg) scale(1.1);background:linear-gradient(135deg,var(--island),#1a2e38);color:#fff;box-shadow:0 8px 24px rgba(38,70,83,.2)}
+footer .copy{font-size:12.5px;color:#9a9a9f;font-weight:600}
+
+/* ============ Modal ============ */
+.modal{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(20,20,22,.5);backdrop-filter:blur(24px)}
+.modal.on{display:flex;animation:fade .4s var(--ease)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal-box{max-width:720px;width:100%;max-height:86vh;overflow-y:auto;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.8);border-radius:40px 26px 36px 30px / 26px 40px 30px 36px;box-shadow:0 32px 80px rgba(38,70,83,.35);animation:pop .55s var(--spring);position:relative;overflow:hidden}
+@keyframes pop{from{opacity:0;transform:scale(.9) translateY(30px)}to{opacity:1;transform:none}}
+.modal-box::-webkit-scrollbar{width:6px}
+.modal-box::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+.modal-hero{height:220px;position:relative;display:flex;align-items:flex-end;padding:24px;border-radius:40px 26px 0 0 / 26px 40px 0 0}
+.modal-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),transparent 60%);border-radius:40px 26px 0 0 / 26px 40px 0 0}
+.modal-hero .mh{position:relative;z-index:1;color:#fff;font-size:1.5rem;font-weight:800;letter-spacing:-.01em;line-height:1.3;padding-right:50px;font-family:'Quicksand','Noto Sans TC',sans-serif}
+.modal-close{position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.9);border:none;display:flex;align-items:center;justify-content:center;font-size:16px;z-index:2;transition:.4s var(--spring);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.modal-close:hover{transform:scale(1.15) rotate(90deg);background:#fff}
+.modal-content{padding:30px 32px 36px}
+.modal-content h3{font-size:1.05rem;font-weight:800;color:var(--island);margin:22px 0 10px;display:flex;align-items:center;gap:9px;font-family:'Quicksand','Noto Sans TC',sans-serif}
+.modal-content h3:first-child{margin-top:0}
+.modal-content p{font-size:.94rem;color:var(--ink2);line-height:1.75;margin-bottom:10px;font-weight:600}
+.modal-content ul{list-style:none;margin:8px 0 14px}
+.modal-content li{font-size:.9rem;color:var(--ink2);padding:7px 0 7px 26px;position:relative;font-weight:600}
+.modal-content li::before{content:'✓';position:absolute;left:0;color:var(--sea);font-weight:900}
+.highlight{background:linear-gradient(135deg,rgba(240,249,246,.7),rgba(254,250,224,.7));padding:18px 22px;border-radius:18px 24px 16px 26px / 24px 16px 26px 18px;border-left:4px solid var(--sea);margin:16px 0}
+.highlight p{color:var(--island);font-weight:700;margin:0;font-style:italic}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+.mini{background:rgba(247,247,249,.6);padding:16px;border-radius:20px 16px 22px 18px / 16px 22px 18px 20px}
+.mini .mv{font-size:1.5rem;font-weight:900;color:var(--island)}
+.mini .mk{font-size:.78rem;color:var(--ink2);font-weight:700;margin-top:4px}
+
+.rv{opacity:0;transform:translateY(50px);transition:all 1.1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}.d6{transition-delay:.6s}
+
+@media(max-width:640px){
+  .sec{padding:80px 0}.wrap{padding:0 18px}
+  .modal-content{padding:24px 22px 30px}.modal-hero{height:170px}
+  .modal-hero .mh{font-size:1.2rem}
+  .chat-body{height:400px}
+  .join-card,.newsletter{padding:40px 26px}
+  .member .m-top{padding:26px 22px 16px}
+  .member .m-body{padding:0 22px 24px}
+  .timeline::before{left:18px}
+  .tl-item{padding-left:60px}
+  .tl-item::before{width:44px;height:44px;font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body data-theme="hero">
+
+<div id="coconutCursor">
+  <svg class="coconut-svg" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="22" r="14" fill="#8B5E3C"/>
+    <circle cx="20" cy="22" r="14" fill="url(#cocoGrad)"/>
+    <circle cx="14" cy="16" r="3" fill="#5D3A1F"/>
+    <circle cx="26" cy="18" r="3" fill="#5D3A1F"/>
+    <circle cx="20" cy="26" r="3" fill="#5D3A1F"/>
+    <path d="M8 10 Q20 0 32 10" stroke="#2E7D32" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M20 5 L20 1" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round"/>
+    <defs>
+      <radialGradient id="cocoGrad" cx="35%" cy="35%">
+        <stop offset="0%" stop-color="#A5754F"/>
+        <stop offset="100%" stop-color="#8B5E3C"/>
+      </radialGradient>
+    </defs>
+  </svg>
+</div>
+
+<div id="bg">
+  <div class="bg-base"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-layer bg-hero on" data-theme="hero"></div>
+  <div class="bg-layer bg-problem" data-theme="problem"></div>
+  <div class="bg-layer bg-belief" data-theme="belief"></div>
+  <div class="bg-layer bg-journey" data-theme="journey"></div>
+  <div class="bg-layer bg-gallery" data-theme="gallery"></div>
+  <div class="bg-layer bg-events" data-theme="events"></div>
+  <div class="bg-layer bg-village" data-theme="village"></div>
+  <div class="bg-layer bg-team" data-theme="team"></div>
+  <div class="bg-layer bg-results" data-theme="results"></div>
+  <div class="bg-layer bg-model" data-theme="model"></div>
+  <div class="bg-layer bg-faq" data-theme="faq"></div>
+  <div class="bg-layer bg-chat" data-theme="chat"></div>
+  <div class="bg-layer bg-footer" data-theme="footer"></div>
+  <div class="aurora a1" data-depth="0.12"></div>
+  <div class="aurora a2" data-depth="0.18"></div>
+  <div class="aurora a3" data-depth="0.15"></div>
+  <div class="aurora a4" data-depth="0.22"></div>
+  <div class="stars" id="stars"></div>
+  <div class="bubbles" id="bubbles"></div>
+</div>
+<div class="grain"></div>
+<div id="prog"></div>
+
+<nav class="nav" id="nav">
+  <a href="#problem" data-sec="problem">🌊 問題</a>
+  <a href="#belief" data-sec="belief">🌅 信念</a>
+  <a href="#journey" data-sec="journey">📜 歷程</a>
+  <a href="#gallery" data-sec="gallery">📷 回顧</a>
+  <a href="#events" data-sec="events">🏖️ 活動</a>
+  <a href="#village" data-sec="village">🏝️ 村落</a>
+  <a href="#team" data-sec="team">🥥 團隊</a>
+  <a href="#results" data-sec="results">🪸 成果</a>
+  <a href="#model" data-sec="model">⛵ 模式</a>
+  <a href="#faq" data-sec="faq">🐚 問答</a>
+  <a href="#chat" data-sec="chat">💬 AI</a>
+</nav>
+
+<header class="wrap hero">
+  <div class="decor-layer">
+    <span class="decor big" style="top:14%;left:6%;animation-duration:14s">🏝️</span>
+    <span class="decor" style="top:24%;right:9%;animation-duration:11s">🥥</span>
+    <span class="decor" style="top:55%;right:6%;animation-duration:16s">🍍</span>
+    <span class="decor small" style="top:62%;left:10%;animation-duration:17s">🐚</span>
+    <span class="decor" style="top:72%;right:14%;animation-duration:13s">🌴</span>
+    <span class="decor small" style="top:42%;left:4%;animation-duration:15s">🐠</span>
+    <span class="decor small" style="top:82%;left:22%;animation-duration:12s">🫧</span>
+    <span class="decor small" style="top:34%;right:4%;animation-duration:14s">🌺</span>
+  </div>
+  <div class="badge"><i class="fas fa-compass"></i> Soul Island · 靈魂奇嶼記</div>
+  <h1>A way to <span class="accent">reconnect</span>,<br>reflect, restore the souls</h1>
+  <p class="lead">一個屬於香港青年嘅心靈小島。喺度你可以重新連結、反思、療癒自己。</p>
+  <p class="en">"Healing doesn't have to be heavy." — 療癒 · 創意 · 聯繫</p>
+  <div class="cta">
+    <a href="#events" class="btn btn-dark"><i class="fas fa-compass"></i> 探索活動</a>
+    <a href="#chat" class="btn btn-ghost"><i class="fas fa-comments"></i> 問 AI 助手</a>
+  </div>
+  <div class="scroll-cue"><div class="mouse"></div>SCROLL</div>
+</header>
+
+<section class="sec wrap" id="problem" data-theme="problem">
+  <div class="decor-layer">
+    <span class="decor" style="top:18%;left:4%;animation-duration:15s">🐚</span>
+    <span class="decor small" style="top:58%;right:7%;animation-duration:13s">🫧</span>
+    <span class="decor small" style="top:28%;right:14%;animation-duration:14s">🐠</span>
+    <span class="decor small" style="top:76%;left:11%;animation-duration:16s">🫧</span>
+    <span class="decor small" style="top:44%;left:7%;animation-duration:12s">🌊</span>
+  </div>
+  <div class="sec-badge">🌊</div>
+  <div class="rv">
+    <div class="eyebrow">The Problem</div>
+    <h2 class="big">點解會有呢個島？</h2>
+    <p class="sub">2026 年的孤獨，是一場公共健康危機。我哋想喺危機爆發之前，做啲嘢。</p>
+  </div>
+  <div class="stats">
+    <div class="stat rv d1" onclick="openModal('stat1')">
+      <div class="num" data-count="47.64">0</div>
+      <div class="lbl">2022 年本地市民精神健康指數（滿分 100）</div>
+    </div>
+    <div class="stat rv d2" onclick="openModal('stat2')">
+      <div class="num">1/7</div>
+      <div class="lbl">香港人受困於心理困擾，但 2/3 從不尋求協助</div>
+    </div>
+    <div class="stat rv d3" onclick="openModal('stat3')">
+      <div class="num" data-count="20.9">0</div>
+      <div class="lbl">全球 13–17 歲青少年表示自己感到孤獨</div>
+    </div>
+    <div class="stat rv d4" onclick="openModal('stat4')">
+      <div class="num" data-count="47.7">0</div>
+      <div class="lbl">香港青年「感到孤獨」，58.8% 覺得冇人明白自己</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="belief" data-theme="belief">
+  <div class="decor-layer">
+    <span class="decor big" style="top:10%;right:7%;animation-duration:14s">🌅</span>
+    <span class="decor" style="top:32%;left:5%;animation-duration:13s">🌻</span>
+    <span class="decor small" style="top:68%;right:11%;animation-duration:16s">🌺</span>
+    <span class="decor small" style="top:52%;left:9%;animation-duration:12s">☀️</span>
+    <span class="decor small" style="top:78%;left:19%;animation-duration:15s">🦋</span>
+  </div>
+  <div class="sec-badge">🌅</div>
+  <div class="rv">
+    <div class="eyebrow">Our Belief</div>
+    <h2 class="big">我哋相信⋯⋯</h2>
+    <p class="sub">三個核心信念，支撐住整個 Soul Island 嘅存在。</p>
+  </div>
+  <div class="belief-grid">
+    <div class="belief rv d1" style="--c:#2A9D8F">
+      <div class="b-icon">🌱</div>
+      <h3>天生自我療癒力</h3>
+      <p>人類天生具備自我療癒能力。我哋嘅角色唔係治療，而係創造一個安全嘅空間，等呢份力量可以自然發生。</p>
+    </div>
+    <div class="belief rv d2" style="--c:#E76F51">
+      <div class="b-icon">🤝</div>
+      <h3>消除污名化</h3>
+      <p>社會有責任消除精神健康嘅污名化標籤，建立包容共融嘅環境。心理健康應該係日常，唔係危機後嘅補救。</p>
+    </div>
+    <div class="belief rv d3" style="--c:#C8B6E2">
+      <div class="b-icon">🎨</div>
+      <h3>自然 × 藝術</h3>
+      <p>自然與藝術能更好地幫助人釋放情緒並增強連結感。透過五感、創作、分享，我哋重新連結自己同他人。</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="journey" data-theme="journey">
+  <div class="decor-layer">
+    <span class="decor big" style="top:14%;left:5%;animation-duration:15s">🗺️</span>
+    <span class="decor" style="top:24%;right:7%;animation-duration:13s">⛵</span>
+    <span class="decor small" style="top:58%;right:11%;animation-duration:14s">🧭</span>
+    <span class="decor small" style="top:74%;left:11%;animation-duration:16s">📜</span>
+    <span class="decor small" style="top:44%;left:7%;animation-duration:12s">🪶</span>
+  </div>
+  <div class="sec-badge">📜</div>
+  <div class="rv">
+    <div class="eyebrow">Our Journey</div>
+    <h2 class="big">由一個問題開始</h2>
+    <p class="sub">「點解做善事一定要咁沉重？」呢個問題，帶我哋去到好多唔同嘅島。</p>
+  </div>
+  <div class="timeline">
+    <div class="tl-item rv" data-year="2023">
+      <div class="tl-content">
+        <h4>💡 想法萌芽</h4>
+        <p>Wanki 喺中大社工系讀 year 2，開始思考點樣將心理健康從「醫療服務」變成「日常社交習慣」。同 Sunny、Gloria、Stephy 傾開，發現大家都想做啲更輕、更貼地嘅嘢。</p>
+      </div>
+    </div>
+    <div class="tl-item rv" data-year="2024">
+      <div class="tl-content">
+        <h4>🌊 第一次離島 Retreat</h4>
+        <p>喺南丫島舉辦第一次 Retreat Tour。沙灘瑜伽、森林浴、小組分享。參加者回饋：「最難忘係沙灘上面嘅 stress relaxing 環節。」</p>
+      </div>
+    </div>
+    <div class="tl-item rv" data-year="2025">
+      <div class="tl-content">
+        <h4>🏝️ 品牌成形</h4>
+        <p>Soul Island 正式成立。喺坪洲、中大未圓湖舉辦多次活動。建立 IG 社群，累積超過 13,000 粉絲。</p>
+      </div>
+    </div>
+    <div class="tl-item rv" data-year="2026">
+      <div class="tl-content">
+        <h4>🚀 平台啟動</h4>
+        <p>推出 Hybrid Platform Model，開放俾 NGO、導師、活動創作者上架活動。目標三年內累積 3 萬活躍用戶，收入達 5,000 萬港元。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="gallery" data-theme="gallery">
+  <div class="decor-layer">
+    <span class="decor big" style="top:10%;right:7%;animation-duration:14s">📷</span>
+    <span class="decor" style="top:28%;left:5%;animation-duration:13s">💌</span>
+    <span class="decor small" style="top:68%;right:13%;animation-duration:15s">🌺</span>
+    <span class="decor small" style="top:52%;left:11%;animation-duration:12s">🪸</span>
+  </div>
+  <div class="sec-badge">📷</div>
+  <div class="rv">
+    <div class="eyebrow">Postcards from the Island</div>
+    <h2 class="big">過往活動 · 島上嘅明信片</h2>
+    <p class="sub">Retreat Tours in islands in Hong Kong — 南丫島、坪洲、未圓湖。點擊任何一張，睇返嗰日嘅故事。</p>
+  </div>
+  <div class="gallery">
+    <div class="photo rv d1" onclick="openModal('photo1')" style="background:linear-gradient(150deg,#89CFF0,#2A9D8F)">
+      <span class="emoji">🏖️</span><span class="pin">🏖️ 南丫島</span>
+      <span class="more"><i class="fas fa-expand"></i></span>
+      <div class="cap">沙灘大合照 · 我哋一齊跳起嘅瞬間</div>
+    </div>
+    <div class="photo rv d2" onclick="openModal('photo2')" style="background:linear-gradient(150deg,#F4A261,#89CFF0)">
+      <span class="emoji">🌅</span><span class="pin">🌅 坪洲</span>
+      <span class="more"><i class="fas fa-expand"></i></span>
+      <div class="cap">黃昏跳起 · 全世界一齊離地</div>
+    </div>
+    <div class="photo rv d3" onclick="openModal('photo3')" style="background:linear-gradient(150deg,#264653,#C8B6E2)">
+      <span class="emoji">🌙</span><span class="pin">🌙 夜晚沙灘</span>
+      <span class="more"><i class="fas fa-expand"></i></span>
+      <div class="cap">藝術創作 × 夜晚分享</div>
+    </div>
+    <div class="photo rv d4" onclick="openModal('photo4')" style="background:linear-gradient(150deg,#FFDAB9,#E9C46A)">
+      <span class="emoji">🏕️</span><span class="pin">🏕️ 沙灘墊</span>
+      <span class="more"><i class="fas fa-expand"></i></span>
+      <div class="cap">圍圈分享 · 每個人嘅人生課題</div>
+    </div>
+    <div class="photo rv d5" onclick="openModal('photo5')" style="background:linear-gradient(150deg,#A8E6CF,#89CFF0)">
+      <span class="emoji">🎨</span><span class="pin">🎨 石頭創作</span>
+      <span class="more"><i class="fas fa-expand"></i></span>
+      <div class="cap">未圓湖 · 五感靜觀 × 石頭繪畫</div>
+    </div>
+    <div class="photo rv d6" onclick="openModal('photo6')" style="background:linear-gradient(150deg,#E76F51,#C8B6E2)">
+      <span class="emoji">💌</span><span class="pin">💌 靈魂碎片</span>
+      <span class="more"><i class="fas fa-expand"></i></span>
+      <div class="cap">卡牌分享 · 認識彼此嘅人生課題</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="events" data-theme="events">
+  <div class="decor-layer">
+    <span class="decor big" style="top:8%;left:5%;animation-duration:14s">🥥</span>
+    <span class="decor big" style="top:20%;right:7%;animation-duration:13s">🍍</span>
+    <span class="decor" style="top:48%;left:4%;animation-duration:12s">🌴</span>
+    <span class="decor" style="top:64%;right:9%;animation-duration:15s">🍹</span>
+    <span class="decor small" style="top:78%;left:14%;animation-duration:16s">🐠</span>
+    <span class="decor small" style="top:34%;right:17%;animation-duration:11s">🥭</span>
+  </div>
+  <div class="sec-badge">🏖️</div>
+  <div class="rv">
+    <div class="eyebrow">Upcoming Activities</div>
+    <h2 class="big">島嶼地圖 · 而家島上有咩？</h2>
+    <p class="sub">點擊任何活動卡片，睇詳情同購票。</p>
+  </div>
+  <div class="events">
+    <div class="event rv d1" onclick="openModal('event1')">
+      <div class="thumb" style="background:linear-gradient(150deg,#2A9D8F,#264653)">
+        <span class="em">🌞</span><span class="tag">🌞 Sunday Reset</span>
+      </div>
+      <div class="body">
+        <h3>離島小旅行 · Retreat Tour</h3>
+        <p>靜觀練習、森林浴、主題式團隊遊戲與反思活動。適合初學者。</p>
+        <div class="meta">
+          <span><i class="fas fa-calendar"></i> 11月16日</span>
+          <span><i class="fas fa-clock"></i> 10:00–17:00</span>
+        </div>
+        <div class="foot">
+          <div class="price">HK$380 <small>/ 位</small></div>
+          <button class="pill" onclick="event.stopPropagation();handleBuy('離島小旅行',380)">購票</button>
+        </div>
+      </div>
+    </div>
+    <div class="event rv d2" onclick="openModal('event2')">
+      <div class="thumb" style="background:linear-gradient(150deg,#E9C46A,#F4A261)">
+        <span class="em">🎨</span><span class="tag">🎨 Nature × Art</span>
+      </div>
+      <div class="body">
+        <h3>未圓湖五感靜觀 × 石頭創作</h3>
+        <p>結合未圓湖自然環境，透過五感練習、湖畔慢行及石頭繪畫。</p>
+        <div class="meta">
+          <span><i class="fas fa-calendar"></i> 11月23日</span>
+          <span><i class="fas fa-clock"></i> 14:00–17:30</span>
+        </div>
+        <div class="foot">
+          <div class="price">HK$220 <small>/ 位</small></div>
+          <button class="pill" onclick="event.stopPropagation();handleBuy('未圓湖五感靜觀',220)">購票</button>
+        </div>
+      </div>
+    </div>
+    <div class="event rv d3" onclick="openModal('event3')">
+      <div class="thumb" style="background:linear-gradient(150deg,#E76F51,#C8B6E2)">
+        <span class="em">🎉</span><span class="tag">🎉 Wellness Party</span>
+      </div>
+      <div class="body">
+        <h3>療癒派對 · Run Rave × 咖啡派對</h3>
+        <p>無酒精派對、草地音樂、五感體驗。將心理健康融入日常社交習慣。</p>
+        <div class="meta">
+          <span><i class="fas fa-calendar"></i> 12月7日</span>
+          <span><i class="fas fa-clock"></i> 15:00–20:00</span>
+        </div>
+        <div class="foot">
+          <div class="price">HK$280 <small>/ 位</small></div>
+          <button class="pill" onclick="event.stopPropagation();handleBuy('療癒派對',280)">購票</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="village" data-theme="village">
+  <div class="decor-layer">
+    <span class="decor big" style="top:14%;right:7%;animation-duration:14s">🏝️</span>
+    <span class="decor" style="top:34%;left:4%;animation-duration:13s">🏡</span>
+    <span class="decor small" style="top:64%;right:14%;animation-duration:15s">🌴</span>
+    <span class="decor small" style="top:74%;left:18%;animation-duration:12s">🐠</span>
+  </div>
+  <div class="sec-badge">🏝️</div>
+  <div class="rv">
+    <div class="eyebrow">The Village</div>
+    <h2 class="big">村落社區 · 搵到你嘅人</h2>
+    <p class="sub">點擊任何小組，睇下佢哋做緊咩。</p>
+  </div>
+  <div class="chips">
+    <div class="chip rv d1" onclick="openModal('v1')"><span>🌊</span> 海邊散步團</div>
+    <div class="chip rv d2" onclick="openModal('v2')"><span>✍️</span> 書寫角落</div>
+    <div class="chip rv d3" onclick="openModal('v3')"><span>🍲</span> 慢食小組</div>
+    <div class="chip rv d4" onclick="openModal('v4')"><span>🎨</span> 創作實驗室</div>
+    <div class="chip rv d5" onclick="openModal('v5')"><span>🏃</span> 線上運動團</div>
+    <div class="chip rv d6" onclick="openModal('v6')"><span>📚</span> 讀書會</div>
+  </div>
+</section>
+
+<section class="sec wrap" id="team" data-theme="team">
+  <div class="decor-layer">
+    <span class="decor big" style="top:9%;left:4%;animation-duration:14s">🌴</span>
+    <span class="decor big" style="top:24%;right:7%;animation-duration:13s">🥥</span>
+    <span class="decor" style="top:52%;left:7%;animation-duration:15s">🐒</span>
+    <span class="decor small" style="top:74%;right:11%;animation-duration:12s">🌺</span>
+  </div>
+  <div class="sec-badge">🥥</div>
+  <div class="rv">
+    <div class="eyebrow">Our Core Team</div>
+    <h2 class="big">點解會有 Soul Island？</h2>
+    <p class="sub">四位中大學生，因為一個問題走埋一齊。點擊「展開完整履歷」睇佢哋嘅詳細背景。</p>
+  </div>
+  <div class="team-grid">
+    <div class="member wanki rv d1">
+      <div class="m-top">
+        <div class="ava">🌊</div>
+        <div class="name">WANKI, YEUNG</div>
+        <div class="role-tag">Founder · The Guide</div>
+        <div class="degree">🎓 Bachelor of Social Work, CUHK, Year 4</div>
+      </div>
+      <div class="m-body">
+        <div class="highlight-item"><i class="fas fa-trophy"></i><span>連續三年獲滙豐社工獎學金及友邦獎學金</span></div>
+        <div class="highlight-item"><i class="fas fa-leaf"></i><span>香港青協自然之路引導師 · 森林浴老師實習</span></div>
+        <div class="highlight-item"><i class="fas fa-star"></i><span>IG / YouTube 累積超過 13,000 粉絲</span></div>
+        <div class="expand-btn" onclick="toggleMember(this)"><span>展開完整履歷</span><i class="fas fa-chevron-down"></i></div>
+        <div class="m-full">
+          <h5>🎓 學術背景</h5>
+          <ul><li>香港中文大學社會工作學系 Year 4</li><li>擁有扎實的社工價值觀與實習經驗</li><li>連續三年獲得滙豐社工獎學金及友邦獎學金</li></ul>
+          <h5>🌲 專業認證</h5>
+          <ul><li>香港青協自然之路引導師</li><li>參與森林浴老師實習</li></ul>
+          <h5>📱 數位影響力</h5>
+          <ul><li>Instagram: @soulisland_asia</li><li>209 則帖子 · 1.3 萬位粉絲 · 2,839 追蹤中</li><li>過去 30 天有 17.9 萬次瀏覽</li></ul>
+          <h5>💼 工作經驗</h5>
+          <ul><li>與多個初創企業合作</li><li>負責社交媒體及市場推廣營運</li></ul>
+          <div class="social-row"><span class="s-tag sea">00後創業中</span><span class="s-tag sun">中大社工</span><span class="s-tag lav">數位游牧</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="member sunny rv d2">
+      <div class="m-top">
+        <div class="ava">💻</div>
+        <div class="name">SUNNY, YAU</div>
+        <div class="role-tag">Co-Founder · Tech</div>
+        <div class="degree">🎓 Biomedical Engineering, CUHK, Year 3</div>
+      </div>
+      <div class="m-body">
+        <div class="highlight-item"><i class="fas fa-code"></i><span>有設計網頁和寫作程式的經驗</span></div>
+        <div class="highlight-item"><i class="fas fa-rocket"></i><span>參加阿里巴巴 Diamond Challenge 創業比賽</span></div>
+        <div class="highlight-item"><i class="fas fa-cogs"></i><span>負責平台技術開發與維運</span></div>
+        <div class="expand-btn" onclick="toggleMember(this)"><span>展開完整履歷</span><i class="fas fa-chevron-down"></i></div>
+        <div class="m-full">
+          <h5>🎓 學術背景</h5>
+          <ul><li>香港中文大學生物醫學工程 Year 3</li><li>結合工程思維與醫療健康視野</li></ul>
+          <h5>💻 技術專長</h5>
+          <ul><li>網頁設計與開發</li><li>程式編寫</li><li>平台功能開發與維運</li></ul>
+          <h5>🏆 創業經歷</h5>
+          <ul><li>參加阿里巴巴 Diamond Challenge 創業比賽</li><li>負責 Soul Island 技術架構</li></ul>
+          <div class="social-row"><span class="s-tag sea">生物醫學工程</span><span class="s-tag sun">Diamond Challenge</span><span class="s-tag lav">Web Dev</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="member gloria rv d3">
+      <div class="m-top">
+        <div class="ava">🎨</div>
+        <div class="name">GLORIA, LEUNG</div>
+        <div class="role-tag">Co-Founder · Art</div>
+        <div class="degree">🎓 Social Work, CUHK, Year 4</div>
+      </div>
+      <div class="m-body">
+        <div class="highlight-item"><i class="fas fa-award"></i><span>中大傑出學生獎（社會服務）</span></div>
+        <div class="highlight-item"><i class="fas fa-palette"></i><span>「日本和諧粉彩」正指導師</span></div>
+        <div class="highlight-item"><i class="fas fa-hands"></i><span>擅長手工藝 · 帶領藝術類工作坊</span></div>
+        <div class="expand-btn" onclick="toggleMember(this)"><span>展開完整履歷</span><i class="fas fa-chevron-down"></i></div>
+        <div class="m-full">
+          <h5>🎓 學術背景</h5>
+          <ul><li>香港中文大學社會工作學系 Year 4</li><li>正副修「創業及創新」</li><li>正副修「同創：社會科學與創新實踐」</li></ul>
+          <h5>🏆 榮譽與獎項</h5>
+          <ul><li>中大傑出學生獎（社會服務）</li><li>和聲書院傑出學生獎（書院服務）</li></ul>
+          <h5>🎨 藝術專業</h5>
+          <ul><li>「日本和諧粉彩」正指導師</li><li>擅長手工藝</li><li>帶領藝術類工作坊和小組</li></ul>
+          <div class="social-row"><span class="s-tag sea">中大傑出學生</span><span class="s-tag sun">和諧粉彩指導師</span><span class="s-tag lav">藝術工作坊</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="member stephy rv d4">
+      <div class="m-top">
+        <div class="ava">🌏</div>
+        <div class="name">STEPHY, CHONG</div>
+        <div class="role-tag">Co-Founder · Finance</div>
+        <div class="degree">🎓 Geography & Resources, CUHK, Year 4</div>
+      </div>
+      <div class="m-body">
+        <div class="highlight-item"><i class="fas fa-mountain"></i><span>熱愛考究自然與人類關係</span></div>
+        <div class="highlight-item"><i class="fas fa-chart-line"></i><span>Bloomberg Market Concept 證書</span></div>
+        <div class="highlight-item"><i class="fas fa-calculator"></i><span>金融、外匯、投資及會計實習經驗</span></div>
+        <div class="expand-btn" onclick="toggleMember(this)"><span>展開完整履歷</span><i class="fas fa-chevron-down"></i></div>
+        <div class="m-full">
+          <h5>🎓 學術背景</h5>
+          <ul><li>香港中文大學地理及資源管理學系 Year 4</li><li>熱愛考究自然與人類關係</li></ul>
+          <h5>💼 金融經歷</h5>
+          <ul><li>深入研究金融及外匯市場</li><li>擁有投資及會計的經驗</li><li>Bloomberg Market Concept 證書</li></ul>
+          <h5>📊 數據專長</h5>
+          <ul><li>熟練利用 VBA 自動整理重複性數據</li><li>Earning model：Abnormal Earning Growth Model、Residual Earning Model</li></ul>
+          <div class="social-row"><span class="s-tag sea">Bloomberg 證書</span><span class="s-tag sun">金融分析</span><span class="s-tag lav">VBA 自動化</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="results" data-theme="results">
+  <div class="decor-layer">
+    <span class="decor big" style="top:11%;right:7%;animation-duration:14s">🪸</span>
+    <span class="decor" style="top:28%;left:5%;animation-duration:13s">🐠</span>
+    <span class="decor small" style="top:58%;right:11%;animation-duration:15s">🐟</span>
+    <span class="decor small" style="top:78%;left:14%;animation-duration:12s">🐡</span>
+  </div>
+  <div class="sec-badge">🪸</div>
+  <div class="rv">
+    <div class="eyebrow">Our Impact</div>
+    <h2 class="big">活動成果 · 我哋追蹤緊嘅數字</h2>
+    <p class="sub">呢啲唔係最終成效，而係反映「連結嘅發生」。</p>
+  </div>
+  <div class="results">
+    <div class="result rv d1"><div class="r-num" data-count="13">0</div><div class="r-lbl">K+ 社交媒體粉絲</div></div>
+    <div class="result rv d2"><div class="r-num" data-count="179">0</div><div class="r-lbl">K 過去 30 天瀏覽次數</div></div>
+    <div class="result rv d3"><div class="r-num" data-count="60">0</div><div class="r-lbl">+ 活動累積參加者</div></div>
+    <div class="result rv d4"><div class="r-num" data-count="6">0</div><div class="r-lbl">個興趣小組社群</div></div>
+    <div class="result rv d5"><div class="r-num" data-count="14">0</div><div class="r-lbl">+ 合作夥伴機構</div></div>
+    <div class="result rv d6"><div class="r-num" data-count="4">0</div><div class="r-lbl">位核心團隊成員</div></div>
+  </div>
+</section>
+
+<section class="sec wrap" id="model" data-theme="model">
+  <div class="decor-layer">
+    <span class="decor big" style="top:9%;left:5%;animation-duration:14s">⛵</span>
+    <span class="decor big" style="top:20%;right:7%;animation-duration:13s">🍍</span>
+    <span class="decor" style="top:52%;left:7%;animation-duration:15s">🍹</span>
+    <span class="decor small" style="top:74%;right:14%;animation-duration:12s">🥭</span>
+  </div>
+  <div class="sec-badge">⛵</div>
+  <div class="rv">
+    <div class="eyebrow">Business Model</div>
+    <h2 class="big">Hybrid Platform Model</h2>
+    <p class="sub">點擊卡片睇詳細收入流同成本結構。</p>
+  </div>
+  <div class="models">
+    <div class="model card rv d1" onclick="openModal('m1')">
+      <span class="ico">🎟️</span><h4>自家活動營收</h4>
+      <p>Wellness Party / Retreat / 小旅行，門票收入與升級服務。</p>
+      <span class="read">睇詳情 <i class="fas fa-arrow-right"></i></span>
+    </div>
+    <div class="model card rv d2" onclick="openModal('m2')">
+      <span class="ico">🏪</span><h4>平台活動佣金</h4>
+      <p>NGO、導師、創作者上架活動，佣金抽成 10–25%。</p>
+      <span class="read">睇詳情 <i class="fas fa-arrow-right"></i></span>
+    </div>
+    <div class="model card rv d3" onclick="openModal('m3')">
+      <span class="ico">💚</span><h4>社群付費訂閱</h4>
+      <p>Community+ 深度群組、導師分享、情緒 check-in。</p>
+      <span class="read">睇詳情 <i class="fas fa-arrow-right"></i></span>
+    </div>
+    <div class="model card rv d4" onclick="openModal('m4')">
+      <span class="ico">🏢</span><h4>企業 Wellbeing</h4>
+      <p>Team Retreat、Mental Resilience Workshop。</p>
+      <span class="read">睇詳情 <i class="fas fa-arrow-right"></i></span>
+    </div>
+    <div class="model card rv d5" onclick="openModal('m5')">
+      <span class="ico">🤝</span><h4>機構合作收入</h4>
+      <p>NGO／校園合辦活動、青年項目合作。</p>
+      <span class="read">睇詳情 <i class="fas fa-arrow-right"></i></span>
+    </div>
+    <div class="model card rv d6" onclick="openModal('m6')">
+      <span class="ico">📢</span><h4>贊助與廣告</h4>
+      <p>健康、運動、生活品牌活動贊助。</p>
+      <span class="read">睇詳情 <i class="fas fa-arrow-right"></i></span>
+    </div>
+  </div>
+
+  <div style="margin-top:56px" class="rv">
+    <div class="eyebrow">Market Size</div>
+    <h2 class="big" style="font-size:clamp(1.6rem,3.4vw,2.4rem)">目標市場規模</h2>
+  </div>
+  <div class="markets" style="margin-top:36px">
+    <div class="mkt tam rv d1" onclick="openModal('tam')">
+      <div class="l">TAM</div><div class="n">120 萬</div>
+      <div class="d">香港 12–29 歲青年<br>心理健康需求約 30 萬<br>估算市場價值 12 億港元</div>
+    </div>
+    <div class="mkt sam rv d2" onclick="openModal('sam')">
+      <div class="l">SAM</div><div class="n">18 萬</div>
+      <div class="d">18–35 歲孤獨感大學生及初職青年<br>市場規模 2.16 億港元</div>
+    </div>
+    <div class="mkt som rv d3" onclick="openModal('som')">
+      <div class="l">SOM</div><div class="n">3 萬</div>
+      <div class="d">前三年活躍用戶目標<br>預計收入 5,000 萬港元<br>B2C:60% / B2B:30%</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap">
+  <div class="rv">
+    <div class="eyebrow">Testimonia</div>
+    <h2 class="big">參加者嘅聲音</h2>
+    <p class="sub">點擊卡片，睇完整回饋。</p>
+  </div>
+  <div class="quotes">
+    <div class="quote card rv d1" onclick="openModal('q1')">
+      <div class="t">最難忘係沙灘上面嘅 stress relaxing 環節，環境揀得好好，而且羊仔把聲／節奏好適合 lead 住大家去好好放鬆。</div>
+      <div class="a">— Retreat Tour 參加者</div>
+    </div>
+    <div class="quote card rv d2" onclick="openModal('q2')">
+      <div class="t">童真環節，最最最重要係我哋真係俾社會灌輸太多固有模式，令我哋都好崩緊。反而重拾童真更能令我 chill, play hard like a child!</div>
+      <div class="a">— 坪洲活動參加者</div>
+    </div>
+    <div class="quote card rv d3" onclick="openModal('q3')">
+      <div class="t">人生真係有好多種劇本⋯⋯令我知道，我唔會係孤單一個人，it's okay to feel lost。</div>
+      <div class="a">— 南丫島活動參加者</div>
+    </div>
+    <div class="quote card rv d4" onclick="openModal('q4')">
+      <div class="t">羊仔帶得好好！好 nice 好 encouraging，會令到每一個人都覺得舒服同埋 feel secure。</div>
+      <div class="a">— 活動回饋問卷</div>
+    </div>
+  </div>
+
+  <div style="margin-top:56px" class="rv">
+    <div class="eyebrow">Island Friends</div>
+    <h2 class="big" style="font-size:clamp(1.6rem,3.4vw,2.4rem)">合作夥伴</h2>
+  </div>
+  <div class="partners">
+    <span class="pt">Insta360</span><span class="pt">義遊 VOLTRA</span><span class="pt">Timeleft</span>
+    <span class="pt">barefoot asia</span><span class="pt">樂山 Fun Peak</span><span class="pt">M+</span>
+    <span class="pt">Lions Club</span><span class="pt">JCI Hong Kong</span><span class="pt">JC LevelMind</span>
+    <span class="pt">mindhk 香港心聆</span><span class="pt">一起靜</span><span class="pt">SoulWood Journey</span>
+    <span class="pt">PUZZLE WEEKLY</span><span class="pt">陪我講 Shall We Talk</span>
+  </div>
+</section>
+
+<section class="sec wrap" id="faq" data-theme="faq">
+  <div class="decor-layer">
+    <span class="decor big" style="top:11%;right:7%;animation-duration:14s">🐚</span>
+    <span class="decor" style="top:32%;left:5%;animation-duration:13s">🦪</span>
+    <span class="decor small" style="top:62%;right:14%;animation-duration:15s">🫧</span>
+    <span class="decor small" style="top:78%;left:18%;animation-duration:12s">🌊</span>
+  </div>
+  <div class="sec-badge">🐚</div>
+  <div class="rv">
+    <div class="eyebrow">FAQ</div>
+    <h2 class="big">常見問題</h2>
+    <p class="sub">點擊任何問題展開答案。</p>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item rv d1">
+      <div class="faq-q" onclick="toggleFaq(this)">Soul Island 係一間咩類型嘅公司？<i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a"><p>Soul Island 係一個 youth-driven wellness brand / 社會企業，以 Hybrid Platform Model 運作，結合自家活動（B2C/B2B）同平台活動佣金。</p></div>
+    </div>
+    <div class="faq-item rv d2">
+      <div class="faq-q" onclick="toggleFaq(this)">活動適合新手嗎？<i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a"><p>完全適合。所有活動都係 beginner-friendly，我哋強調「非醫療化、低門檻」嘅體驗，唔需要任何經驗。</p></div>
+    </div>
+    <div class="faq-item rv d3">
+      <div class="faq-q" onclick="toggleFaq(this)">點樣加入村落社群？<i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a"><p>可以 DM Instagram @soulisland_asia，或者喺 IG bio 搵 WhatsApp 社群連結。加入後可以選擇唔同嘅興趣小組。</p></div>
+    </div>
+    <div class="faq-item rv d4">
+      <div class="faq-q" onclick="toggleFaq(this)">可以合作或上架活動嗎？<i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a"><p>歡迎！我哋開放俾 NGO、青年組織、社工 / 導師、身心靈活動創作者上架活動，佣金抽成 10–25%。Email hello@soulisland.org 洽談。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap">
+  <div class="newsletter rv">
+    <h3>訂閱島上通訊</h3>
+    <p>每月一封，同你分享新活動、社群故事、同埋一啲療癒小練習。</p>
+    <form class="nl-form" onsubmit="event.preventDefault();subscribe(this)">
+      <input type="email" placeholder="你嘅 email..." required>
+      <button type="submit">訂閱 🌊</button>
+    </form>
+  </div>
+</section>
+
+<section class="sec wrap" id="chat" data-theme="chat">
+  <div class="decor-layer">
+    <span class="decor big" style="top:9%;left:4%;animation-duration:14s">🗼</span>
+    <span class="decor big" style="top:20%;right:7%;animation-duration:13s">🐚</span>
+    <span class="decor" style="top:52%;left:7%;animation-duration:15s">🫧</span>
+    <span class="decor small" style="top:74%;right:11%;animation-duration:12s">🌊</span>
+  </div>
+  <div class="sec-badge">🗼</div>
+  <div class="rv" style="text-align:center;margin-bottom:40px">
+    <div class="eyebrow" style="justify-content:center">AI Assistant</div>
+    <h2 class="big">問島上 AI 助手</h2>
+    <p class="sub" style="margin:0 auto">關於 Soul Island 嘅任何問題，佢都會答你。</p>
+  </div>
+  <div class="chat rv">
+    <div class="chat-head">
+      <span class="dot"></span>
+      <span class="who-name">Soul Island AI 助手</span>
+      <span class="ai-badge">Powered by 靈魂奇嶼記</span>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="msg them">
+        <div class="who">🌿 島上 AI 助手</div>
+        你好！我係 Soul Island 嘅 AI 助手 🏝️ 我熟悉呢個島嘅一切——活動、團隊、理念、數據、點樣參加。<br><br>你可以問我：<strong>「你哋係做咩嘅？」</strong>、<strong>「最近有咩活動？」</strong>、<strong>「創辦人係邊個？」</strong>、<strong>「Wanki 背景？」</strong>
+      </div>
+    </div>
+    <div class="chat-suggest">
+      <span class="sg" onclick="quickAsk('Soul Island 係咩？')">Soul Island 係咩？</span>
+      <span class="sg" onclick="quickAsk('最近有咩活動？')">最近有咩活動？</span>
+      <span class="sg" onclick="quickAsk('創辦人係邊個？')">創辦人係邊個？</span>
+      <span class="sg" onclick="quickAsk('Wanki 背景？')">Wanki 背景</span>
+      <span class="sg" onclick="quickAsk('團隊有幾個人？')">團隊</span>
+      <span class="sg" onclick="quickAsk('你哋嘅商業模式係點？')">商業模式</span>
+    </div>
+    <div class="chat-foot">
+      <input id="chatInput" placeholder="問我任何關於 Soul Island 嘅問題..." onkeydown="if(event.key==='Enter')send()">
+      <button onclick="send()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap" data-theme="footer">
+  <div class="brand">Soul Island · 靈魂奇嶼記</div>
+  <div class="claim">"Healing doesn't have to be heavy."</div>
+  <div class="links">
+    <a href="#problem">問題</a><a href="#belief">信念</a><a href="#journey">歷程</a>
+    <a href="#gallery">回顧</a><a href="#events">活動</a><a href="#village">社區</a>
+    <a href="#team">團隊</a><a href="#results">成果</a><a href="#model">模式</a>
+    <a href="#faq">問答</a><a href="#chat">AI 助手</a>
+  </div>
+  <div class="social-row">
+    <a href="#" title="Instagram" onclick="event.preventDefault();alert('Instagram: @soulisland_asia')"><i class="fab fa-instagram"></i></a>
+    <a href="#" title="YouTube" onclick="event.preventDefault();alert('YouTube: @wankist')"><i class="fab fa-youtube"></i></a>
+    <a href="#" title="WhatsApp" onclick="event.preventDefault();alert('WhatsApp 社群：請 DM IG 索取連結')"><i class="fab fa-whatsapp"></i></a>
+    <a href="#" title="Email" onclick="event.preventDefault();alert('Email: hello@soulisland.org')"><i class="fas fa-envelope"></i></a>
+  </div>
+  <div class="copy">© 2026 Soul Island · 讓 wellness 更輕 · hello@soulisland.org</div>
+</footer>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-hero" id="mHero">
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      <div class="mh" id="mTitle"></div>
+    </div>
+    <div class="modal-content" id="mContent"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var cursor = document.getElementById('coconutCursor');
+  if(!cursor) return;
+  var isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  if(isTouchDevice){ cursor.style.display = 'none'; return; }
+  var mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+  var cursorX = mouseX, cursorY = mouseY;
+  function animate(){
+    cursorX += (mouseX - cursorX) * 0.55;
+    cursorY += (mouseY - cursorY) * 0.55;
+    cursor.style.transform = 'translate3d(' + (cursorX - 21) + 'px,' + (cursorY - 21) + 'px,0)';
+    requestAnimationFrame(animate);
+  }
+  document.addEventListener('mousemove', function(e){ mouseX = e.clientX; mouseY = e.clientY; });
+  document.addEventListener('mousemove', function initOnce(){
+    cursorX = mouseX; cursorY = mouseY;
+    document.removeEventListener('mousemove', initOnce);
+  }, { once: true });
+  document.addEventListener('mousedown', function(){ cursor.classList.add('clicking'); });
+  document.addEventListener('mouseup', function(){ cursor.classList.remove('clicking'); });
+  document.addEventListener('mouseover', function(e){
+    var isInteractive = e.target.closest('a, button, [onclick], .card, .stat, .event, .member, .belief, .model, .mkt, .quote, .faq-item, .chip, .pt, .sg, .pill, .btn, input, textarea');
+    cursor.classList.toggle('hovering', !!isInteractive);
+  });
+  document.addEventListener('mouseleave', function(){ cursor.style.opacity = '0'; });
+  document.addEventListener('mouseenter', function(){ cursor.style.opacity = '1'; });
+  animate();
+})();
+
+(function(){
+  var pieces = ['🥥','🌊','🍃','🌺','🥥','🐚','⭐','💧'];
+  var sparkColors = ['rgba(42,157,143,.8)','rgba(244,162,97,.8)','rgba(233,196,106,.8)','rgba(231,111,81,.8)'];
+  document.addEventListener('click', function(e){
+    var x = e.clientX, y = e.clientY;
+    var ripple = document.createElement('div');
+    ripple.className = 'click-ripple';
+    ripple.style.left = x + 'px'; ripple.style.top = y + 'px';
+    document.body.appendChild(ripple);
+    setTimeout(function(){ ripple.remove(); }, 700);
+    var ring = document.createElement('div');
+    ring.className = 'click-ring';
+    ring.style.left = x + 'px'; ring.style.top = y + 'px';
+    document.body.appendChild(ring);
+    setTimeout(function(){ ring.remove(); }, 800);
+    for(var i = 0; i < 6; i++){
+      var piece = document.createElement('div');
+      piece.className = 'click-piece';
+      piece.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+      piece.style.left = x + 'px'; piece.style.top = y + 'px';
+      var angle = (Math.PI * 2 * i) / 6 + Math.random() * 0.6;
+      var distance = 60 + Math.random() * 50;
+      piece.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+      piece.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+      piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+      document.body.appendChild(piece);
+      setTimeout(function(){ piece.remove(); }, 800);
+    }
+    for(var j = 0; j < 8; j++){
+      var spark = document.createElement('div');
+      spark.className = 'click-spark';
+      spark.style.left = x + 'px'; spark.style.top = y + 'px';
+      spark.style.background = sparkColors[Math.floor(Math.random() * sparkColors.length)];
+      var sAngle = (Math.PI * 2 * j) / 8 + Math.random() * 0.4;
+      var sDist = 30 + Math.random() * 40;
+      spark.style.setProperty('--tx', Math.cos(sAngle) * sDist + 'px');
+      spark.style.setProperty('--ty', Math.sin(sAngle) * sDist + 'px');
+      document.body.appendChild(spark);
+      setTimeout(function(){ spark.remove(); }, 600);
+    }
+  });
+})();
+
+(function(){
+  var stars = document.getElementById('stars');
+  for(var i = 0; i < 60; i++){
+    var s = document.createElement('div');
+    s.className = 'star';
+    var size = Math.random() * 3 + 1;
+    s.style.width = size + 'px'; s.style.height = size + 'px';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.animationDelay = (Math.random() * 4) + 's';
+    s.style.animationDuration = (3 + Math.random() * 4) + 's';
+    stars.appendChild(s);
+  }
+  var bubbles = document.getElementById('bubbles');
+  var colors = ['rgba(168,230,207,.45)','rgba(255,218,185,.45)','rgba(137,207,240,.45)','rgba(200,182,226,.45)','rgba(255,143,163,.35)'];
+  for(var j = 0; j < 15; j++){
+    var b = document.createElement('div');
+    b.className = 'bubble';
+    var bs = Math.random() * 60 + 20;
+    b.style.width = bs + 'px'; b.style.height = bs + 'px';
+    b.style.left = Math.random() * 100 + '%';
+    b.style.background = colors[Math.floor(Math.random() * colors.length)];
+    b.style.animationDuration = (18 + Math.random() * 20) + 's';
+    b.style.animationDelay = (Math.random() * 20) + 's';
+    b.style.filter = 'blur(1px)';
+    bubbles.appendChild(b);
+  }
+})();
+
+document.querySelectorAll('a[href^="#"]').forEach(function(link){
+  link.addEventListener('click', function(e){
+    var id = this.getAttribute('href');
+    if(id === '#' || id.length < 2) return;
+    var target = document.querySelector(id);
+    if(target){
+      e.preventDefault();
+      var top = target.getBoundingClientRect().top + window.scrollY - 90;
+      window.scrollTo({top: top, behavior:'smooth'});
+    }
+  });
+});
+
+var bgLayers = document.querySelectorAll('.bg-layer');
+var currentTheme = 'hero';
+var themeObserver = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting && entry.intersectionRatio > 0.3){
+      var theme = entry.target.dataset.theme;
+      if(theme && theme !== currentTheme){
+        currentTheme = theme;
+        document.body.dataset.theme = theme;
+        bgLayers.forEach(function(layer){ layer.classList.toggle('on', layer.dataset.theme === theme); });
+      }
+    }
+  });
+}, { threshold: [0.3, 0.5], rootMargin: '-20% 0px -20% 0px' });
+document.querySelectorAll('section[data-theme], header.hero, footer[data-theme]').forEach(function(el){ themeObserver.observe(el); });
+
+function toggleMember(btn){
+  btn.classList.toggle('open');
+  var full = btn.nextElementSibling;
+  full.classList.toggle('open');
+  btn.querySelector('span').textContent = btn.classList.contains('open') ? '收起履歷' : '展開完整履歷';
+}
+function toggleFaq(el){ el.parentElement.classList.toggle('open'); }
+function subscribe(form){
+  var email = form.querySelector('input').value;
+  alert('✅ 訂閱成功！\n\n' + email + '\n\n我哋會每月send一封島上通訊俾你 🌊');
+  form.reset();
+}
+
+var DB = {
+  stat1:{t:'2022 精神健康指數 47.64/100',g:'linear-gradient(135deg,#F4A261,#E76F51)',b:'<h3>📊 指數代表咩？</h3><p>2022 年本地市民精神健康指數為 <strong>47.64 分（滿分 100）</strong>，屬於「尚可但偏低」水平。</p><div class="highlight"><p>每 7 人就有 1 人受困於心理困擾，但 2/3 從不尋求協助。</p></div><h3>🔍 背後原因</h3><ul><li>社會對精神健康嘅污名化</li><li>治療方式門檻高、輪候時間長</li><li>亞洲文化習慣抑壓情緒</li></ul>'},
+  stat2:{t:'1/7 香港人受心理困擾',g:'linear-gradient(135deg,#E76F51,#264653)',b:'<h3>😔 求助率極低</h3><p>香港每 7 個人就有 1 個受心理困擾，但當中 <strong>三分之二從未尋求專業協助</strong>。</p><h3>🚧 三大障礙</h3><ul><li>「有病」「無能」等負面標籤</li><li>缺乏低門檻、非診斷式支援空間</li><li>公共資源有限，專業支援成本高</li></ul>'},
+  stat3:{t:'20.9% 青少年感到孤獨',g:'linear-gradient(135deg,#2A9D8F,#264653)',b:'<h3>🌍 全球數據</h3><p>全球 13–17 歲青少年之中，<strong>20.9% 表示自己感到孤獨</strong>。長期孤獨對健康嘅影響等同吸煙同肥胖（世界衛生組織）。</p>'},
+  stat4:{t:'47.7% 香港青年感到孤獨',g:'linear-gradient(135deg,#C8B6E2,#E76F51)',b:'<h3>📋 青協「青年孤獨感 2021」</h3><div class="grid2"><div class="mini"><div class="mv">47.7%</div><div class="mk">感到孤獨</div></div><div class="mini"><div class="mv">58.8%</div><div class="mk">覺得冇人明白自己</div></div></div>'},
+  photo1:{t:'南丫島 · 沙灘大合照',g:'linear-gradient(135deg,#89CFF0,#2A9D8F)',b:'<h3>🏖️ 我哋一齊跳起嘅瞬間</h3><p>呢日我哋一行人坐船入南丫島，喺沙灘上玩團隊遊戲、做森林浴、分享心事。</p><h3>🌊 當日流程</h3><ul><li>早上：碼頭集合，破冰遊戲</li><li>中午：慢食體驗</li><li>下午：沙灘伸展 × 靜觀練習</li><li>黃昏：小組分享 × 大圈反思</li></ul>'},
+  photo2:{t:'坪洲 · 黃昏跳起',g:'linear-gradient(135deg,#F4A261,#89CFF0)',b:'<h3>🌅 全世界一齊離地</h3><p>坪洲嘅黃昏，我哋喺海邊跳起。呢一刻冇煩惱、冇壓力，只有當下。</p>'},
+  photo3:{t:'夜晚沙灘 · 藝術創作',g:'linear-gradient(135deg,#264653,#C8B6E2)',b:'<h3>🌙 舉起自己嘅作品</h3><p>夜晚嘅沙灘，我哋用電筒照住自己嘅創作，逐一分享背後嘅故事。</p>'},
+  photo4:{t:'沙灘墊上 · 圍圈分享',g:'linear-gradient(135deg,#FFDAB9,#E9C46A)',b:'<h3>🏕️ 每個人嘅人生課題</h3><p>我哋坐喺沙灘墊上面圍圈，分享自己嘅故事。</p><div class="highlight"><p>「人生真係有好多種劇本，令我知道，我唔會係孤單一個人。」</p></div>'},
+  photo5:{t:'未圓湖 · 石頭繪畫',g:'linear-gradient(135deg,#A8E6CF,#89CFF0)',b:'<h3>🎨 五感靜觀 × 石頭創作</h3><p>喺中大未圓湖，我哋進行五感 54321 練習：視覺 5 件、觸覺 4 種、聽覺 3 種、嗅覺 2 種、味覺 1 種。</p>'},
+  photo6:{t:'靈魂碎片 · 卡牌分享',g:'linear-gradient(135deg,#E76F51,#C8B6E2)',b:'<h3>💌 認識彼此嘅人生課題</h3><p>「靈魂碎片」卡牌環節，每人抽一張卡，分享卡上面嘅問題帶俾自己嘅聯想。</p>'},
+  event1:{t:'離島小旅行 · Retreat Tour',g:'linear-gradient(135deg,#2A9D8F,#264653)',b:'<h3>🌞 活動內容</h3><p>以預防性心理健康為核心，融合社工小組工作理念及 PERMA 框架。</p><h3>📋 流程</h3><ul><li>靜觀練習 · 五感 54321</li><li>森林浴 · 芬多精體驗</li><li>主題式團隊遊戲與反思</li><li>沙灘伸展 × 小組分享</li></ul><div class="highlight"><p>日期：11月16日（日）10:00–17:00 ｜ HK$380 / 位</p></div>'},
+  event2:{t:'未圓湖五感靜觀 × 石頭創作',g:'linear-gradient(135deg,#E9C46A,#F4A261)',b:'<h3>🎨 活動理念</h3><p>以靜觀為本、人本取向嘅創意體驗，結合未圓湖自然環境。</p><h3>📋 五大環節</h3><ul><li>湖畔靜觀導入 × 五感 54321</li><li>慢食體驗</li><li>石頭覺察體驗</li><li>石頭繪畫 × 禪線畫</li><li>展示與分享</li></ul><div class="highlight"><p>日期：11月23日（六）14:00–17:30 ｜ HK$220 / 位</p></div>'},
+  event3:{t:'療癒派對 · Run Rave',g:'linear-gradient(135deg,#E76F51,#C8B6E2)',b:'<h3>🎉 將療癒變成派對</h3><p>無酒精派對、草地音樂、五感體驗。</p><ul><li>Run Rave：跑步 × 音樂 × 舞蹈</li><li>咖啡派對：慢飲 × 對話</li><li>草地音樂會</li><li>露營五感體驗</li></ul><div class="highlight"><p>日期：12月7日（日）15:00–20:00 ｜ HK$280 / 位</p></div>'},
+  v1:{t:'🌊 海邊散步團',g:'linear-gradient(135deg,#89CFF0,#2A9D8F)',b:'<h3>做緊咩？</h3><p>每月第一個星期日，一齊行海邊。唔需要傾好多嘢，只需要一齊行、一齊呼吸。</p>'},
+  v2:{t:'✍️ 書寫角落',g:'linear-gradient(135deg,#A8E6CF,#89CFF0)',b:'<h3>做緊咩？</h3><p>用文字整理思緒。我哋會分享日記、詩、生活碎片，互相回應但唔批判。</p>'},
+  v3:{t:'🍲 慢食小組',g:'linear-gradient(135deg,#FFDAB9,#E9C46A)',b:'<h3>做緊咩？</h3><p>好好食一餐飯，好好傾一次偈。練習 mindful eating。</p>'},
+  v4:{t:'🎨 創作實驗室',g:'linear-gradient(135deg,#C8B6E2,#E76F51)',b:'<h3>做緊咩？</h3><p>一齊試新嘢，唔怕失敗。和諧粉彩、禪線畫、石頭創作……每次唔同主題。</p>'},
+  v5:{t:'🏃 線上運動團',g:'linear-gradient(135deg,#F4A261,#E76F51)',b:'<h3>做緊咩？</h3><p>每日掌上壓 × 捲腹挑戰，互相監督、互相鼓勵。</p>'},
+  v6:{t:'📚 讀書會',g:'linear-gradient(135deg,#E9C46A,#A8E6CF)',b:'<h3>做緊咩？</h3><p>每個月揀一本書，一齊讀、一齊分享。</p>'},
+  m1:{t:'🎟️ 自家活動營收',g:'linear-gradient(135deg,#2A9D8F,#264653)',b:'<h3>收入來源</h3><ul><li>門票收入</li><li>升級服務（體驗包、專屬課程）</li><li>周邊商品</li></ul><p>B2C 直接營收、具高毛利。</p>'},
+  m2:{t:'🏪 平台活動佣金',g:'linear-gradient(135deg,#E9C46A,#F4A261)',b:'<h3>運作方式</h3><p>NGO、導師、活動創作者可以喺平台上下架課程／活動。</p><div class="grid2"><div class="mini"><div class="mv">10–25%</div><div class="mk">平台佣金</div></div><div class="mini"><div class="mv">B2B</div><div class="mk">機構合作</div></div></div>'},
+  m3:{t:'💚 社群付費訂閱',g:'linear-gradient(135deg,#A8E6CF,#89CFF0)',b:'<h3>訂閱內容</h3><ul><li>深度群組（導師專屬分享）</li><li>線上分享會、每月小活動</li><li>情緒 check-in 裝置</li></ul>'},
+  m4:{t:'🏢 企業 Wellbeing',g:'linear-gradient(135deg,#E76F51,#C8B6E2)',b:'<h3>服務內容</h3><ul><li>Team Retreat 企業團建</li><li>Mental Resilience Workshop</li></ul>'},
+  m5:{t:'🤝 機構合作收入',g:'linear-gradient(135deg,#FFDAB9,#E9C46A)',b:'<h3>合作對象</h3><ul><li>NGO</li><li>青年組織</li><li>社工 / 導師</li><li>身心靈創作者</li></ul>'},
+  m6:{t:'📢 贊助與廣告',g:'linear-gradient(135deg,#89CFF0,#2A9D8F)',b:'<h3>品牌合作</h3><ul><li>健康品牌、運動品牌</li><li>活動贊助</li><li>平台廣告位</li></ul>'},
+  tam:{t:'TAM · 總體潛在市場',g:'linear-gradient(135deg,#F4A261,#E76F51)',b:'<div class="grid2"><div class="mini"><div class="mv">120 萬</div><div class="mk">青年總人數</div></div><div class="mini"><div class="mv">30 萬</div><div class="mk">心理健康需求</div></div><div class="mini"><div class="mv">12 億</div><div class="mk">市場價值</div></div></div>'},
+  sam:{t:'SAM · 可服務市場',g:'linear-gradient(135deg,#2A9D8F,#264653)',b:'<div class="grid2"><div class="mini"><div class="mv">18 萬</div><div class="mk">目標人數</div></div><div class="mini"><div class="mv">2.16 億</div><div class="mk">市場規模</div></div></div>'},
+  som:{t:'SOM · 可獲得市場',g:'linear-gradient(135deg,#C8B6E2,#E76F51)',b:'<div class="grid2"><div class="mini"><div class="mv">3 萬</div><div class="mk">活躍用戶</div></div><div class="mini"><div class="mv">5,000 萬</div><div class="mk">預計收入</div></div></div>'},
+  q1:{t:'「最難忘係沙灘上嘅 stress relaxing」',g:'linear-gradient(135deg,#F4A261,#2A9D8F)',b:'<p>「最難忘嘅地方係沙灘上面嘅 stress relaxing 環節，環境揀得好好，而且羊仔把聲／節奏好適合 lead 住大家去好好放鬆。」</p>'},
+  q2:{t:'「重拾童真更能令我 chill」',g:'linear-gradient(135deg,#E9C46A,#E76F51)',b:'<p>「童真環節，最最最重要係我哋真係俾社會灌輸太多固有模式，令我哋都好崩緊。反而重拾童真更能令我 chill, play hard like a child!」</p>'},
+  q3:{t:'「It\u0027s okay to feel lost」',g:'linear-gradient(135deg,#C8B6E2,#89CFF0)',b:'<p>「人生真係有好多種劇本。令我知道，邊個階段嘅人都會有煩惱，我唔會係孤單一個人，it\u0027s okay to feel lost。」</p>'},
+  q4:{t:'「好 nice 好 encouraging」',g:'linear-gradient(135deg,#A8E6CF,#2A9D8F)',b:'<p>「羊仔帶得好好！好 nice 好 encouraging，會令到每一個人都覺得舒服同埋 feel secure。」</p>'}
+};
+
+function openModal(id){
+  var d = DB[id];
+  if(!d) return;
+  document.getElementById('mTitle').textContent = d.t;
+  document.getElementById('mHero').style.background = d.g;
+  document.getElementById('mContent').innerHTML = d.b;
+  document.getElementById('modal').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('on');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeModal(); });
+
+var auroras = document.querySelectorAll('.aurora');
+var ticking = false;
+window.addEventListener('scroll', function(){
+  if(!ticking){
+    requestAnimationFrame(function(){
+      var y = window.scrollY;
+      auroras.forEach(function(orb){
+        var depth = parseFloat(orb.dataset.depth) || 0.15;
+        orb.style.transform = 'translate3d(0,' + (y * depth * 0.5) + 'px,0)';
+      });
+      ticking = false;
+    });
+    ticking = true;
+  }
+}, {passive:true});
+
+document.querySelectorAll('.stat, .event, .card, .mkt, .belief, .member, .tl-content, .photo, .quote').forEach(function(el){
+  el.addEventListener('mousemove', function(e){
+    var r = this.getBoundingClientRect();
+    this.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    this.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+});
+
+var prog = document.getElementById('prog');
+window.addEventListener('scroll', function(){
+  var h = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+}, {passive:true});
+
+var navLinks = document.querySelectorAll('.nav a');
+var secs = ['problem','belief','journey','gallery','events','village','team','results','model','faq','chat'];
+var lastY = 0;
+var nav = document.getElementById('nav');
+window.addEventListener('scroll', function(){
+  var y = window.scrollY;
+  if(y > lastY && y > 600) nav.classList.add('hide');
+  else nav.classList.remove('hide');
+  lastY = y;
+  var cur = '';
+  secs.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){
+      var r = el.getBoundingClientRect();
+      if(r.top <= 200 && r.bottom >= 200) cur = id;
+    }
+  });
+  navLinks.forEach(function(a){ a.classList.toggle('on', a.dataset.sec === cur); });
+}, {passive:true});
+
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  });
+}, {threshold:0.12, rootMargin:'0px 0px -80px 0px'});
+document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+
+var tlIO = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ e.target.classList.add('in'); tlIO.unobserve(e.target); }
+  });
+}, {threshold:0.3});
+document.querySelectorAll('.tl-item').forEach(function(el){ tlIO.observe(el); });
+
+var numIO = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var el = e.target;
+      var target = parseFloat(el.dataset.count);
+      var cur = 0;
+      var step = target / 50;
+      var t = setInterval(function(){
+        cur += step;
+        if(cur >= target){ cur = target; clearInterval(t); }
+        el.textContent = target % 1 !== 0 ? cur.toFixed(2) : Math.floor(cur);
+      }, 25);
+      numIO.unobserve(el);
+    }
+  });
+}, {threshold:0.5});
+document.querySelectorAll('[data-count]').forEach(function(el){ numIO.observe(el); });
+
+var KB = [
+  {k:['soul island','靈魂奇嶼','係咩','是什麼','介紹','about','品牌'],
+   a:'<strong>Soul Island · 靈魂奇嶼記</strong> 🏝️<br><br>我哋係一個 youth-driven wellness brand，幫香港嘅城市青年透過<strong>自然、藝術、人與人之間嘅連結</strong>去 restore、reconnect、reflect。<br><br>核心理念：<strong>「Healing doesn\'t have to be heavy.」</strong>'},
+  {k:['創辦人','founder','團隊','team','邊個','who','幾個人'],
+   a:'<strong>Our Core Team 👥 四位中大學生</strong><br><br>🌊 WANKI, YEUNG · Founder（社工系 Year 4 · 滙豐社工獎學金 · 13,000+ 粉絲）<br><br>💻 SUNNY, YAU · Co-Founder（生物醫學工程 Year 3 · 網頁設計與程式）<br><br>🎨 GLORIA, LEUNG · Co-Founder（社工系 Year 4 · 中大傑出學生獎 · 和諧粉彩正指導師）<br><br>🌏 STEPHY, CHONG · Co-Founder（地理及資源管理 Year 4 · Bloomberg 證書）'},
+  {k:['wanki','羊仔','yeung'],
+   a:'<strong>WANKI, YEUNG · Founder 🌊</strong><br><br>香港中文大學社會工作學系 Year 4。<br><br>• 連續三年獲滙豐社工獎學金及友邦獎學金<br>• 自創 IG / YouTube 累積超過 <strong>13,000 粉絲</strong><br>• 香港青協自然之路引導師<br><br>Instagram：<strong>@soulisland_asia</strong>'},
+  {k:['問題','香港','孤獨','精神健康','數據'],
+   a:'<strong>香港精神健康現況 📊</strong><br><br>• 2022 年精神健康指數：<strong>47.64/100</strong><br>• 每 7 人有 1 人受心理困擾，但 <strong>2/3 從不求助</strong><br>• 全球 13–17 歲青少年：<strong>20.9%</strong> 感到孤獨<br>• 香港青年：<strong>47.7%</strong> 感到孤獨'},
+  {k:['活動','event','有咩玩','最近'],
+   a:'<strong>近期活動 🎟️</strong><br><br>🌞 離島小旅行 · 11/16 · HK$380<br>🎨 未圓湖五感靜觀 · 11/23 · HK$220<br>🎉 療癒派對 · 12/7 · HK$280'},
+  {k:['參加','報名','join','點去','點樣'],
+   a:'<strong>點參加？🎟️</strong><br><br>1️⃣ 喺活動卡片 click「購票」<br>2️⃣ 填寫基本資料<br>3️⃣ 完成付款<br>4️⃣ 收到電子票<br><br>或者 DM IG <strong>@soulisland_asia</strong>！'},
+  {k:['商業','business','點賺錢','收入'],
+   a:'<strong>Hybrid Platform Model 💼</strong><br><br>1️⃣ 自家活動營收<br>2️⃣ 平台活動佣金（10–25%）<br>3️⃣ 社群付費訂閱<br>4️⃣ 企業 Wellbeing<br>5️⃣ 機構合作<br>6️⃣ 贊助與廣告'},
+  {k:['市場','market','tam','sam','som'],
+   a:'<strong>目標市場 📈</strong><br><br>• TAM：120 萬青年 / 12 億港元<br>• SAM：18 萬人 / 2.16 億港元<br>• SOM：3 萬活躍用戶 / 5,000 萬收入'},
+  {k:['合作','partner','夥伴','機構','ngo'],
+   a:'<strong>合作夥伴 🤝</strong><br><br>Insta360、義遊 VOLTRA、Timeleft、barefoot asia、樂山 Fun Peak、M+、Lions Club、JCI、JC LevelMind、mindhk、一起靜、SoulWood Journey、PUZZLE WEEKLY、陪我講'},
+  {k:['聯絡','contact','email','ig','instagram'],
+   a:'<strong>點搵我哋 📩</strong><br><br>📧 hello@soulisland.org<br>📷 @soulisland_asia<br>📞 +852 2345 6789'},
+  {k:['你好','hi','hello','哈囉'],
+   a:'你好呀！我係 Soul Island 嘅 AI 助手 🏝️<br><br>可以問我：<br>• Soul Island 係咩？<br>• 創辦人係邊個？<br>• 最近有咩活動？'},
+  {k:['多謝','thanks','thx','唔該'],
+   a:'唔使客氣！🌊 有其他問題隨時問我 🌱'},
+  {k:['再見','bye','拜拜'],
+   a:'再見！🌊 記住：<strong>Healing doesn\'t have to be heavy.</strong> 🏝️'}
+];
+
+function findAnswer(input){
+  var text = input.toLowerCase();
+  var best = null, bestScore = 0;
+  for(var i = 0; i < KB.length; i++){
+    var item = KB[i], score = 0;
+    for(var j = 0; j < item.k.length; j++){
+      if(text.indexOf(item.k[j].toLowerCase()) !== -1) score += item.k[j].length;
+    }
+    if(score > bestScore){ bestScore = score; best = item; }
+  }
+  if(best && bestScore > 0) return best.a;
+  return '我唔係好肯定你問嘅嘢 🤔 不過你可以問：<br>• <strong>Soul Island 係咩？</strong><br>• <strong>創辦人係邊個？</strong><br>• <strong>最近有咩活動？</strong><br><br>或者 DM IG <strong>@soulisland_asia</strong> 📩';
+}
+
+function send(){
+  var input = document.getElementById('chatInput');
+  var text = input.value.trim();
+  if(!text) return;
+  var body = document.getElementById('chatBody');
+  var me = document.createElement('div');
+  me.className = 'msg me';
+  me.innerHTML = '<div class="who">你</div>' + escapeHTML(text);
+  body.appendChild(me);
+  body.scrollTop = body.scrollHeight;
+  input.value = '';
+  var t = document.createElement('div');
+  t.className = 'typing'; t.id = 'typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  body.appendChild(t);
+  body.scrollTop = body.scrollHeight;
+  setTimeout(function(){
+    var tt = document.getElementById('typing');
+    if(tt) tt.remove();
+    var answer = findAnswer(text);
+    var them = document.createElement('div');
+    them.className = 'msg them';
+    them.innerHTML = '<div class="who">🌿 島上 AI 助手</div>' + answer;
+    body.appendChild(them);
+    body.scrollTop = body.scrollHeight;
+  }, 900 + Math.random() * 600);
+}
+
+function quickAsk(text){
+  document.getElementById('chatInput').value = text;
+  send();
+  document.getElementById('chat').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function escapeHTML(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function handleBuy(name, price){
+  var ok = confirm('🎟️ 你選擇購買「' + name + '」\n\n價格：HK$' + price + '\n\n撳「確定」模擬跳轉至安全付款頁面。');
+  if(ok){
+    setTimeout(function(){
+      alert('✅ 付款成功（模擬）！\n\n電子票將發送至你嘅電郵。\n到時見！🌊');
+    }, 200);
+  }
+}
+</script>
+</body>
+</html>
